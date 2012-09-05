@@ -9,8 +9,8 @@ function varargout = DPARSFA(varargin)
 %	Written by YAN Chao-Gan
 %	http://www.restfmri.net
 % $mail     =ycg.yan@gmail.com
-% $Version =2.2;
-% $Date =20120901;
+% $Version =2.2PRE;
+% $Date =20120905;
 %-----------------------------------------------------------
 % 	Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a> 
 %   Last Modified by YAN Chao-Gan, 110505. Fixed an error in the future MATLAB version in "[pathstr, name, ext, versn] = fileparts...".
@@ -37,7 +37,7 @@ end
 
 % --- Executes just before DPARSFA is made visible.
 function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
-    Release='V2.2_120901Beta';
+    Release='V2.2PRE_120905';
     
     if ispc
         UserName =getenv('USERNAME');
@@ -61,6 +61,19 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     uimenu(handles.hContextMenu, 'Label', 'Load participant ID from a text file', 'Callback', 'DPARSFA(''LoadSubIDFromTextFile'',gcbo,[], guidata(gcbo))'); % YAN Chao-Gan 120809
     uimenu(handles.hContextMenu, 'Label', 'Save participant ID to a text file', 'Callback', 'DPARSFA(''SaveSubIDToTextFile'',gcbo,[], guidata(gcbo))'); % YAN Chao-Gan 120809
 
+    
+    TemplateParameters={'Template Parameters'...
+        'Calculate in Original Space (warp by DARTEL)'...
+        'Calculate in Original Space (warp by information from unified segmentation)'...
+        'Calculate in MNI Space (warp by DARTEL)'...
+        'Calculate in MNI Space (warp by information from unified segmentation)'...
+        'Calculate in MNI Space: TRADITIONAL order'...
+        'Intraoperative Processing'...
+        'VBM (New Segment and DARTEL)'...
+        'VBM (unified segmentation)'...
+        'Blank'};
+    set(handles.popupmenuTemplateParameters,'String',TemplateParameters);
+    
     
     handles.Cfg.DPARSFVersion=Release;
     handles.Cfg.WorkingDir=pwd;
@@ -159,6 +172,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
 
     handles.Cfg.IsCalFC=1;
     handles.Cfg.IsExtractROISignals=1;
+    handles.Cfg.CalFC.IsMultipleLabel=0;
     handles.Cfg.CalFC.ROIDef=[];
     %handles.Cfg.CalFC.AMaskFilename='Default';
     handles.Cfg.IsDefineROIInteractively = 0;
@@ -382,23 +396,26 @@ function popupmenuTemplateParameters_Callback(hObject, eventdata, handles)
     switch get(hObject, 'Value'),
         case 1,	%Template Parameters
             return;%Do nothing
-        case 2, %Standard Steps: Normalized by DARTEL
-            load([ProgramPath,filesep,'Jobmats',filesep,'Template_StandardSteps_ByDARTEL.mat']);
-        case 3, %Standard Steps: Normalized by DARTEL (Start from .nii.gz files)
-            load([ProgramPath,filesep,'Jobmats',filesep,'Template_StandardSteps_ByDARTEL_NiiGZData.mat']);
-        case 4, %Standard Steps: Normalized by T1 image unified segmentation
-            load([ProgramPath,filesep,'Jobmats',filesep,'Template_StandardSteps_ByT1UnifiedSegment.mat']);
-        case 5, %Calculate in Original Space (Warp by information in unified segmentation)
+        case 2, %Calculate in Original Space (warp by DARTEL)
+            load([ProgramPath,filesep,'Jobmats',filesep,'Template_CalculateInOriginalSpace_Warp_DARTEL.mat']);
+        case 3, %Calculate in Original Space (warp by information from unified segmentation)
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_CalculateInOriginalSpace_Warp_UnifiedSegment.mat']);
-        case 6, %Intraoperative Processing
+        case 4, %Calculate in MNI Space (warp by DARTEL)
+            load([ProgramPath,filesep,'Jobmats',filesep,'Template_CalculateInMNISpace_Warp_DARTEL.mat']);
+        case 5, %Calculate in MNI Space (warp by information from unified segmentation)
+            load([ProgramPath,filesep,'Jobmats',filesep,'Template_CalculateInMNISpace_Warp_UnifiedSegment.mat']);
+        case 6, %Calculate in MNI Space: TRADITIONAL order
+            load([ProgramPath,filesep,'Jobmats',filesep,'Template_CalculateInMNISpace_TraditionalOrder.mat']);
+        case 7, %Intraoperative Processing
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_IntraoperativeProcessing.mat']);
-        case 7, %VBM (New Segment and DARTEL)
+        case 8, %VBM (New Segment and DARTEL)
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_VBM_NewSegmentDARTEL.mat']);
-        case 8, %VBM (unified segmentaition)
+        case 9, %VBM (unified segmentaition)
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_VBM_UnifiedSegment.mat']);
-        case 9, %Blank
+        case 10, %Blank
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_Blank.mat']);
     end
+    
 
     Cfg.WorkingDir =pwd;
     Cfg.DataProcessDir =handles.Cfg.WorkingDir;
@@ -1215,6 +1232,11 @@ function checkboxExtractRESTdefinedROITC_Callback(hObject, eventdata, handles)
  
  function pushbuttonDefineROI_Callback(hObject, eventdata, handles)
     ROIDef=handles.Cfg.CalFC.ROIDef;
+    %if isempty(ROIDef)
+    [ROIDef,IsMultipleLabel]=DPARSF_ROI_Template(ROIDef,handles.Cfg.CalFC.IsMultipleLabel);
+    handles.Cfg.CalFC.IsMultipleLabel = IsMultipleLabel;
+    %end
+    
     ROIDef=rest_ROIList_gui(ROIDef);
     handles.Cfg.CalFC.ROIDef=ROIDef;
     guidata(hObject, handles);
@@ -1534,25 +1556,23 @@ function [handles, CheckingPass]=CheckCfgParametersBeforeRun(handles)
         
     end %handles.Cfg.IsNeedConvertFunDCM2IMG
     
-%     if handles.Cfg.TimePoints==0
-%         uiwait(msgbox('Please set the number of time points of your functional MRI data!','Configuration parameters checking','warn'));
-%         return
-%     end
     
-    if (handles.Cfg.IsSliceTiming==1) && (length(handles.Cfg.SliceTiming.SliceOrder)==length([1:2:33,2:2:32]))
-        if all(handles.Cfg.SliceTiming.SliceOrder==[1:2:33,2:2:32])
-            %uiwait(msgbox('Please ensure the default Slice Timing parameters (Slice Number, Order, Reference Slice) are suitable for your data.','Configuration parameters checking'));
-            %Revised by YAN Chao-Gan, 100130.
-            Answer=questdlg('Are you sure the default Slice Timing parameters (Slice Number, Order, Reference Slice) are suitable for your data?','Configuration parameters checking','Yes','No','No');
-            if ~strcmpi(Answer,'Yes')
-                return
-            end
+    if handles.Cfg.TimePoints==0
+        Answer=questdlg('If the Number of Time Points is set to 0, then DPARSFA will not check the number of time points. Do you want to skip the checking of number of time points?','Configuration parameters checking','Yes','No','Yes');
+        if ~strcmpi(Answer,'Yes')
+            return
         end
     end
     
-    %Added by YAN Chao-Gan, 100130.
-    if (handles.Cfg.IsSmooth==1) && (handles.Cfg.IsCalReHo==1)
-        Answer=questdlg('Smoothing is usually performed after ReHo Calculation. Are you sure to calculate ReHo based on smoothed data?','Configuration parameters checking','Yes','No','No');
+    if handles.Cfg.TR==0
+        Answer=questdlg('If TR is set to 0, then DPARSFA will retrieve the TR information from the NIfTI images. Are you sure the TR information in NIfTI images are correct?','Configuration parameters checking','Yes','No','Yes');
+        if ~strcmpi(Answer,'Yes')
+            return
+        end
+    end
+    
+    if (handles.Cfg.IsSliceTiming==1) && (handles.Cfg.SliceTiming.SliceNumber==0)
+        Answer=questdlg('If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., ceil(SliceNumber/2). SHOULD BE EXTREMELY CAUTIOUS! Are you sure want to continue?','Configuration parameters checking','Yes','No','No');
         if ~strcmpi(Answer,'Yes')
             return
         end

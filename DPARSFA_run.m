@@ -343,7 +343,7 @@ if (AutoDataProcessParameter.IsSliceTiming==1)
         parfor i=1:AutoDataProcessParameter.SubjectNum
             SPMJOB = load([ProgramPath,filesep,'Jobmats',filesep,'SliceTiming.mat']);
             
-            cd(AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i});
+            cd([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i}]);
             DirImg=dir('*.img');
             
             if isempty(DirImg)  %YAN Chao-Gan, 111114. Also support .nii files. % Either in .nii.gz or in .nii
@@ -3230,7 +3230,7 @@ if (AutoDataProcessParameter.IsNormalize>0) && strcmpi(AutoDataProcessParameter.
             
             % Revised by YAN Chao-Gan, 100420. Fixed a bug in displaying overlay with different bounding box from those of underlay in according to rest_sliceviewer.m
             DPARSF_Normalized_TempImage =fullfile(tempdir,['DPARSF_Normalized_TempImage','_',rest_misc('GetCurrentUser'),'.img']);
-            y_Reslice(Filename,DPARSF_Normalized_TempImage,[1 1 1],0)
+            y_Reslice(Filename,DPARSF_Normalized_TempImage,[1 1 1],0);
             set(DPARSF_rest_sliceviewer_Cfg.Config(1).hUnderlayFile, 'String', DPARSF_Normalized_TempImage);
             set(DPARSF_rest_sliceviewer_Cfg.Config(1).hMagnify ,'Value',2);
             %             set(DPARSF_rest_sliceviewer_Cfg.Config(1).hUnderlayFile, 'String', Filename);
