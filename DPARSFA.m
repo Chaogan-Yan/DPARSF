@@ -1231,8 +1231,10 @@ function checkboxExtractRESTdefinedROITC_Callback(hObject, eventdata, handles)
 	UpdateDisplay(handles);        
  
  function pushbuttonDefineROI_Callback(hObject, eventdata, handles)
-    ROIDef=handles.Cfg.CalFC.ROIDef;
-    %if isempty(ROIDef)
+     ROIDef=handles.Cfg.CalFC.ROIDef;
+     %if isempty(ROIDef)
+     [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
+     addpath([ProgramPath,filesep,'SubGUIs']);
     [ROIDef,IsMultipleLabel]=DPARSF_ROI_Template(ROIDef,handles.Cfg.CalFC.IsMultipleLabel);
     handles.Cfg.CalFC.IsMultipleLabel = IsMultipleLabel;
     %end
