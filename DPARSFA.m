@@ -52,7 +52,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     fprintf('State Key Laboratory of Cognitive Neuroscience and Learning, Beijing Normal University, China\n');
     fprintf('Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a>\nhttp://www.restfmri.net\n');
     fprintf('-----------------------------------------------------------\n');
-    fprintf('Citing Information:\nIf you think DPARSFA is useful for your work, citing it in your paper would be greatly appreciated.\nSomething like "... The data processing was carried out by using Data Processing Assistant for Resting-State fMRI (DPARSF) (Yan & Zang, 2010, http://www.restfmri.net)..."\nReference: Yan C and Zang Y (2010) DPARSF: a MATLAB toolbox for "pipeline" data analysis of resting-state fMRI. Front. Syst. Neurosci. 4:13. doi:10.3389/fnsys.2010.00013\n');
+    fprintf('Citing Information:\nIf you think DPARSFA is useful for your work, citing it in your paper would be greatly appreciated.\nSomething like "... The preprocessing was carried out by using Data Processing Assistant for Resting-State fMRI (DPARSF) (Yan & Zang, 2010, http://www.restfmri.net) which is based on Statistical Parametric Mapping (SPM8) (http://www.fil.ion.ucl.ac.uk/spm) and Resting-State fMRI Data Analysis Toolkit (REST, Song et al., 2011. http://www.restfmri.net)..."\nReference: Yan C and Zang Y (2010) DPARSF: a MATLAB toolbox for "pipeline" data analysis of resting-state fMRI. Front. Syst. Neurosci. 4:13. doi:10.3389/fnsys.2010.00013;     Song, X.W., Dong, Z.Y., Long, X.Y., Li, S.F., Zuo, X.N., Zhu, C.Z., He, Y., Yan, C.G., Zang, Y.F., 2011. REST: A Toolkit for Resting-State Functional Magnetic Resonance Imaging Data Processing. PLoS ONE 6, e25031.\n');
     
     handles.hContextMenu =uicontextmenu;
     set(handles.listSubjectID, 'UIContextMenu', handles.hContextMenu);	%Added by YAN Chao-Gan 091110. Added popup menu to delete selected subject by right click.
@@ -122,7 +122,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     
     handles.Cfg.IsFilter=1;
     handles.Cfg.Filter.Timing='AfterNormalize'; %Another option: BeforeNormalize
-    handles.Cfg.Filter.ALowPass_HighCutoff=0.1;
+    handles.Cfg.Filter.ALowPass_HighCutoff=0.08;
     handles.Cfg.Filter.AHighPass_LowCutoff=0.01;
     handles.Cfg.Filter.AAddMeanBack='Yes';
     
@@ -144,7 +144,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.Cfg.IsCalALFF=1;
     %handles.Cfg.CalALFF.ASamplePeriod=2;
     handles.Cfg.CalALFF.AHighPass_LowCutoff=0.01;
-    handles.Cfg.CalALFF.ALowPass_HighCutoff=0.1;
+    handles.Cfg.CalALFF.ALowPass_HighCutoff=0.08;
     %handles.Cfg.CalALFF.AMaskFilename='Default';
     %handles.Cfg.CalALFF.mALFF_1=1;
     %handles.Cfg.IsCalfALFF=1;
