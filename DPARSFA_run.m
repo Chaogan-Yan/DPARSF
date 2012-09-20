@@ -2257,18 +2257,22 @@ if (AutoDataProcessParameter.IsCalALFF==1)
         
         parfor i=1:AutoDataProcessParameter.SubjectNum
             % Get the appropriate mask
-            if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
-                MaskNameString = 'BrainMask_05_91x109x91';
+            if ~isempty(AutoDataProcessParameter.MaskFile)
+                if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
+                    MaskNameString = 'BrainMask_05_91x109x91';
+                else
+                    [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
+                    MaskNameString = name;
+                end
+                if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
+                    MaskPrefix = AutoDataProcessParameter.SubjectID{i};
+                else
+                    MaskPrefix = 'AllResampled';
+                end
+                AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
             else
-                [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
-                MaskNameString = name;
+                AMaskFilename='';
             end
-            if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
-                MaskPrefix = AutoDataProcessParameter.SubjectID{i};
-            else
-                MaskPrefix = 'AllResampled';
-            end
-            AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
             
             if AutoDataProcessParameter.TR==0  % Need to retrieve the TR information from the NIfTI images
                 TR = AutoDataProcessParameter.TRSet(iFunSession,i)
@@ -2641,18 +2645,22 @@ if (AutoDataProcessParameter.IsCalReHo==1)
         parfor i=1:AutoDataProcessParameter.SubjectNum
 
             % Get the appropriate mask
-            if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
-                MaskNameString = 'BrainMask_05_91x109x91';
+            if ~isempty(AutoDataProcessParameter.MaskFile)
+                if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
+                    MaskNameString = 'BrainMask_05_91x109x91';
+                else
+                    [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
+                    MaskNameString = name;
+                end
+                if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
+                    MaskPrefix = AutoDataProcessParameter.SubjectID{i};
+                else
+                    MaskPrefix = 'AllResampled';
+                end
+                AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
             else
-                [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
-                MaskNameString = name;
+                AMaskFilename='';
             end
-            if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
-                MaskPrefix = AutoDataProcessParameter.SubjectID{i};
-            else
-                MaskPrefix = 'AllResampled';
-            end
-            AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
 
             % ReHo Calculation
             [ReHoBrain, Header] = y_reho([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i}], ...
@@ -2684,18 +2692,23 @@ if (AutoDataProcessParameter.IsCalDegreeCentrality==1)
         parfor i=1:AutoDataProcessParameter.SubjectNum
 
             % Get the appropriate mask
-            if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
-                MaskNameString = 'BrainMask_05_91x109x91';
+            if ~isempty(AutoDataProcessParameter.MaskFile)
+                if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
+                    MaskNameString = 'BrainMask_05_91x109x91';
+                else
+                    [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
+                    MaskNameString = name;
+                end
+                if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
+                    MaskPrefix = AutoDataProcessParameter.SubjectID{i};
+                else
+                    MaskPrefix = 'AllResampled';
+                end
+                AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
             else
-                [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
-                MaskNameString = name;
+                AMaskFilename='';
             end
-            if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
-                MaskPrefix = AutoDataProcessParameter.SubjectID{i};
-            else
-                MaskPrefix = 'AllResampled';
-            end
-            AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
+            
 
             % Degree Centrality Calculation
             [DegreeCentrality_PositiveWeightedSumBrain, DegreeCentrality_PositiveBinarizedSumBrain, Header] = y_DegreeCentrality([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i}], ...
@@ -2928,21 +2941,25 @@ if (AutoDataProcessParameter.IsCalFC==1)
         mkdir([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},'Results',filesep,'FC']);
         
         parfor i=1:AutoDataProcessParameter.SubjectNum
-            
+
             % Get the appropriate mask
-            if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
-                MaskNameString = 'BrainMask_05_91x109x91';
+            if ~isempty(AutoDataProcessParameter.MaskFile)
+                if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
+                    MaskNameString = 'BrainMask_05_91x109x91';
+                else
+                    [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
+                    MaskNameString = name;
+                end
+                if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
+                    MaskPrefix = AutoDataProcessParameter.SubjectID{i};
+                else
+                    MaskPrefix = 'AllResampled';
+                end
+                AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
             else
-                [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
-                MaskNameString = name;
+                AMaskFilename='';
             end
-            if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
-                MaskPrefix = AutoDataProcessParameter.SubjectID{i};
-            else
-                MaskPrefix = 'AllResampled';
-            end
-            AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
-            
+
             
             % Calculate Functional Connectivity by Seed based Correlation Anlyasis
 
@@ -2996,18 +3013,23 @@ if (AutoDataProcessParameter.IsCalVMHC==1)
         parfor i=1:AutoDataProcessParameter.SubjectNum
 
             % Get the appropriate mask
-            if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
-                MaskNameString = 'BrainMask_05_91x109x91';
+            if ~isempty(AutoDataProcessParameter.MaskFile)
+                if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
+                    MaskNameString = 'BrainMask_05_91x109x91';
+                else
+                    [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
+                    MaskNameString = name;
+                end
+                if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
+                    MaskPrefix = AutoDataProcessParameter.SubjectID{i};
+                else
+                    MaskPrefix = 'AllResampled';
+                end
+                AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
             else
-                [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
-                MaskNameString = name;
+                AMaskFilename='';
             end
-            if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
-                MaskPrefix = AutoDataProcessParameter.SubjectID{i};
-            else
-                MaskPrefix = 'AllResampled';
-            end
-            AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
+            
 
             % VMHC Calculation
             [VMHCBrain, Header] = y_VMHC([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i}], ...
@@ -3030,20 +3052,25 @@ end
 if (AutoDataProcessParameter.IsCWAS==1)
     for iFunSession=1:1
         mkdir([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},'Results',filesep,'CWAS']);
-        
+
         % Get the appropriate mask
-        if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
-            MaskNameString = 'BrainMask_05_91x109x91';
+        if ~isempty(AutoDataProcessParameter.MaskFile)
+            if (isequal(AutoDataProcessParameter.MaskFile, 'Default'))
+                MaskNameString = 'BrainMask_05_91x109x91';
+            else
+                [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
+                MaskNameString = name;
+            end
+            if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
+                MaskPrefix = AutoDataProcessParameter.SubjectID{i};
+            else
+                MaskPrefix = 'AllResampled';
+            end
+            AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
         else
-            [pathstr, name, ext] = fileparts(AutoDataProcessParameter.MaskFile);
-            MaskNameString = name;
+            AMaskFilename='';
         end
-        if (AutoDataProcessParameter.IsWarpMasksIntoIndividualSpace==1)
-            MaskPrefix = AutoDataProcessParameter.SubjectID{i};
-        else
-            MaskPrefix = 'AllResampled';
-        end
-        AMaskFilename = [AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,MaskPrefix,'_',MaskNameString,'.nii'];
+        
         
         % CWAS Calculation
         [p_Brain, F_Brain, Header] = y_CWAS([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName], ...

@@ -28,6 +28,15 @@ if ~exist('CUTNUMBER','var')
     CUTNUMBER = 10;
 end
 
+if ~exist('IsNeedDetrend','var')
+    IsNeedDetrend=0;
+end
+
+if ~exist('Band','var')
+    Band=[];
+end
+
+
 theElapsedTime =cputime;
 fprintf('\nComputing CWAS with:\t"%s"', DataUpDir);
 
@@ -56,7 +65,7 @@ parfor i = 1:nSubjectNum
     AllVolume=AllVolume(:,find(MaskDataOneDim));%    ResultVolumeback=zeros(size(MaskData));    ResultVolumeback(1,find(MaskDataOneDim))=Result;    ResultVolumeback=reshape(ResultVolumeback,nDim1, nDim2, nDim3);
     
     % Detrend
-    if exist('IsNeedDetrend','var') && IsNeedDetrend==1
+    if IsNeedDetrend==1
         %AllVolume=detrend(AllVolume);
         fprintf('\n\t Detrending...');
         SegmentLength = ceil(size(AllVolume,2) / CUTNUMBER);
@@ -72,7 +81,7 @@ parfor i = 1:nSubjectNum
     end
     
     % Filtering
-    if exist('Band','var') && ~isempty(Band)
+    if ~isempty(Band)
         fprintf('\n\t Filtering...');
         SegmentLength = ceil(size(AllVolume,2) / CUTNUMBER);
         for iCut=1:CUTNUMBER
@@ -94,8 +103,8 @@ parfor i = 1:nSubjectNum
 end
 clear AllVolume
 
-F_Set = zeros(nVoxels,1);
-p_Set = zeros(nVoxels,1);
+F_Set = zeros(nVoxels,size(Regressor,2));
+p_Set = zeros(nVoxels,size(Regressor,2));
 % AllVolume = AllVolume-repmat(mean(AllVolume),size(AllVolume,1),1);
 % AllVolumeSTD= squeeze(std(AllVolume, 0, 1));
 % AllVolumeSTD(find(AllVolumeSTD==0))=inf;
@@ -120,26 +129,28 @@ parfor iVoxel=1:nVoxels
     
     [F p] = y_mdmr(Distance,Regressor,iter);
 
-    F_Set(iVoxel) = F;
-    p_Set(iVoxel) = p;
+    F_Set(iVoxel,:) = F';
+    p_Set(iVoxel,:) = p';
     fprintf('CWAS for voxel %d\n',iVoxel);
 end
 
-F_Brain=zeros(size(MaskDataOneDim));
-F_Brain(1,find(MaskDataOneDim))=F_Set;
-F_Brain=reshape(F_Brain,nDim1, nDim2, nDim3);
-
-p_Brain=zeros(size(MaskDataOneDim));
-p_Brain(1,find(MaskDataOneDim))=p_Set;
-p_Brain=reshape(p_Brain,nDim1, nDim2, nDim3);
-
-Header.pinfo = [1;0;0];
-Header.dt    =[64,0];
-
-[pathstr, name, ext] = fileparts(AResultFilename);
-
-rest_WriteNiftiImage(F_Brain,Header,[pathstr, filesep, 'F_', name, ext]);
-rest_WriteNiftiImage(p_Brain,Header,[pathstr, filesep, 'p_', name, ext]);
+for iRegressor=1:size(Regressor,2)
+    F_Brain=zeros(size(MaskDataOneDim));
+    F_Brain(find(MaskDataOneDim))=F_Set(:,iRegressor);
+    F_Brain=reshape(F_Brain,nDim1, nDim2, nDim3);
+    
+    p_Brain=zeros(size(MaskDataOneDim));
+    p_Brain(find(MaskDataOneDim))=p_Set(:,iRegressor);
+    p_Brain=reshape(p_Brain,nDim1, nDim2, nDim3);
+    
+    Header.pinfo = [1;0;0];
+    Header.dt    =[64,0];
+    
+    [pathstr, name, ext] = fileparts(AResultFilename);
+    
+    rest_WriteNiftiImage(F_Brain,Header,[pathstr, filesep, 'F_', num2str(iRegressor),'_',name, ext]);
+    rest_WriteNiftiImage(p_Brain,Header,[pathstr, filesep, 'p_', num2str(iRegressor),'_',name, ext]);
+end
 
 theElapsedTime =cputime - theElapsedTime;
 fprintf('\n\t CWAS compution over, elapsed time: %g seconds.\n', theElapsedTime);
@@ -170,13 +181,15 @@ function [F p] = y_mdmr(yDis,x,iter)
 % Neter, J., M. H. Kutner, C. J. Nachtsheim, and W. Wasserman. 1996.
 %   Applied linear statistical models. 4th ed. Irwin, Chicago, Illinois.
 %________________________________
-% Revised by YAN Chao-Gan 120416.
+% Revised to calculate F value for each regressor by YAN Chao-Gan 120416.
+% Ref: Reiss, P.T., Stevens, M.H., Shehzad, Z., Petkova, E., Milham, M.P., 2010. On distance-based permutation tests for between-group comparisons. Biometrics 66, 636-643.
 % The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962, USA
 % Child Mind Institute, 445 Park Avenue, New York, NY 10022, USA
 % The Phyllis Green and Randolph Cowen Institute for Pediatric Neuroscience, New York University Child Study Center, New York, NY 10016, USA
 % ycg.yan@gmail.com
 
 n = size(yDis,1);
+nRegressor = size(x,2); %YAN Chao-Gan, 120917
 A   = -0.5*(yDis.^2);
 I   = eye(n,n);
 uno = ones(n,1);
@@ -192,27 +205,36 @@ m = size(xx,2);                % # of parameters in design matrix
 %fprintf('\nPermuting the data %d times...\n',iter-1);
 
 % degrees of freedom:
-df.among = m-1;
+%df.among = m-1; Will not used, YAN Chao-Gan
 df.resid = n-m;
 df.total = n-1;
 
 % Sum-of-Squares:
-SS.among = trace(H*G*H);
+%SS.among = trace(H*G*H); Will not used, YAN Chao-Gan
 SS.resid = trace((I-H)*G*(I-H));
 SS.total = trace(G);
 
 % Mean Square:
-MS.among = SS.among/df.among;
+%MS.among = SS.among/df.among; Will not used, YAN Chao-Gan
 MS.resid = SS.resid/df.resid;
 
 % pseudo-F:
-F = MS.among/MS.resid;
+H_Regressor_Set = zeros(n,n,nRegressor);
+F = zeros(nRegressor,1);
+for iRegressor=1:nRegressor
+    xTemp = x(:,iRegressor);
+    
+    [Q1,R1] = qr(xTemp,0); 
+    H_Regressor_Set(:,:,iRegressor) = Q1*Q1'; % compute Hat-matrix via QR  %H_Regressor = xTemp*inv(xTemp'*xTemp)*xTemp';
+    
+    F(iRegressor) = trace(H_Regressor_Set(:,:,iRegressor)*G*H_Regressor_Set(:,:,iRegressor))/1/MS.resid;  %F = MS.among/MS.resid;
+end
 
 %-----Permutation Tests:-----
 if iter>0
    rand('state',sum(100*clock)); % set random generator to new state
 
-   F_perm = zeros(iter-1,1); % preallocate results array
+   F_perm = zeros(iter-1,nRegressor); % preallocate results array
    
    for iITER = 1:(iter-1) % observed value is considered a permutation
 
@@ -220,13 +242,19 @@ if iter>0
       G_perm = G(IndexRandPerm,:);       % permute rows
       G_perm = G_perm(:,IndexRandPerm);       % permute cols
       
-      MS_perm  = trace(H*G_perm*H)/df.among;
-      MSE_perm = trace((I-H)*G_perm*(I-H))/df.resid;
-      F_perm(iITER) = MS_perm/MSE_perm;
+      for iRegressor=1:nRegressor
+          MS_perm  = trace(H_Regressor_Set(:,:,iRegressor)*G*H_Regressor_Set(:,:,iRegressor))/1;  %MS_perm  = trace(H*G_perm*H)/df.among;
+          MSE_perm = trace((I-H)*G_perm*(I-H))/df.resid;
+          F_perm(iITER,iRegressor) = MS_perm/MSE_perm;
+      end
    end;
-   j = find(F_perm >= F);     % get randomized stats >= to observed statistic
-   p = (length(j)+1)./(iter); % count values & convert to probability
+   
+   p = ones(nRegressor,1);
+   for iRegressor=1:nRegressor
+       j = find(F_perm(:,iRegressor) >= F(iRegressor)); %j = find(F_perm >= F);     % get randomized stats >= to observed statistic
+       p(iRegressor) = (length(j)+1)./(iter); % count values & convert to probability
+   end
 else
-   p = NaN;
+   p = NaN(nRegressor,1);
 end;
 
