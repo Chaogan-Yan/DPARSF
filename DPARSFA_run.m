@@ -378,12 +378,12 @@ if (AutoDataProcessParameter.IsSliceTiming==1)
             SPMJOB.jobs{1,1}.temporal{1,1}.st.scans{1}=FileList;
             
 
-            if AutoDataProcessParameter.SliceTiming.SliceNumber==0 %If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., ceil(SliceNumber/2). SHOULD BE EXTREMELY CAUTIOUS!!!
+            if AutoDataProcessParameter.SliceTiming.SliceNumber==0 %If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., SliceOrder(ceil(SliceNumber/2)). SHOULD BE EXTREMELY CAUTIOUS!!!
                 Nii=nifti(FileList{1});
                 SliceNumber = size(Nii.dat,3);
                 SPMJOB.jobs{1,1}.temporal{1,1}.st.nslices = SliceNumber;
                 SPMJOB.jobs{1,1}.temporal{1,1}.st.so = [1:2:SliceNumber,2:2:SliceNumber];
-                SPMJOB.jobs{1,1}.temporal{1,1}.st.refslice = ceil(SliceNumber/2);
+                SPMJOB.jobs{1,1}.temporal{1,1}.st.refslice = SPMJOB.jobs{1,1}.temporal{1,1}.st.so(ceil(SliceNumber/2));
             else
                 SliceNumber = AutoDataProcessParameter.SliceTiming.SliceNumber;
                 SPMJOB.jobs{1,1}.temporal{1,1}.st.nslices = SliceNumber;

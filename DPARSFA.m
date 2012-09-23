@@ -488,7 +488,7 @@ function editSliceNumber_Callback(hObject, eventdata, handles)
 	handles.Cfg.SliceTiming.SliceNumber =str2double(get(hObject,'String'));
     
     if handles.Cfg.SliceTiming.SliceNumber==0
-        uiwait(msgbox({'If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., ceil(SliceNumber/2). SHOULD BE EXTREMELY CAUTIOUS!!!';...
+        uiwait(msgbox({'If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., SliceOrder(ceil(SliceNumber/2)). SHOULD BE EXTREMELY CAUTIOUS!!!';...
             },'Set Number of Slices'));
     end
     
@@ -1595,7 +1595,7 @@ function [handles, CheckingPass]=CheckCfgParametersBeforeRun(handles)
     end
     
     if (handles.Cfg.IsSliceTiming==1) && (handles.Cfg.SliceTiming.SliceNumber==0)
-        Answer=questdlg('If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., ceil(SliceNumber/2). SHOULD BE EXTREMELY CAUTIOUS! Are you sure want to continue?','Configuration parameters checking','Yes','No','No');
+        Answer=questdlg('If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., SliceOrder(ceil(SliceNumber/2)). SHOULD BE EXTREMELY CAUTIOUS! Are you sure want to continue?','Configuration parameters checking','Yes','No','No');
         if ~strcmpi(Answer,'Yes')
             return
         end
