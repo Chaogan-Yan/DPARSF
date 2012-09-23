@@ -67,6 +67,23 @@ else
 end
 
 
+
+% Make Display correct in linux
+if ispc
+    ZoomFactor=0.85;
+    ObjectNames = fieldnames(handles);
+    for i=1:length(ObjectNames);
+        eval(['IsFontSizeProp=isprop(handles.',ObjectNames{i},',''FontSize'');']);
+        if IsFontSizeProp
+            eval(['PCFontSize=get(handles.',ObjectNames{i},',''FontSize'');']);
+            FontSize=PCFontSize*ZoomFactor;
+            eval(['set(handles.',ObjectNames{i},',''FontSize'',',num2str(FontSize),');']);
+        end
+    end
+end
+
+
+
 % Update handles structure
 guidata(hObject, handles);
 

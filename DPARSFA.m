@@ -74,6 +74,19 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
         'Blank'};
     set(handles.popupmenuTemplateParameters,'String',TemplateParameters);
     
+    if (~ispc) && (~ismac)
+        TipString = sprintf(['Template Parameters\n'...
+            'Calculate in Original Space (warp by DARTEL)\n'...
+            'Calculate in Original Space (warp by information from unified segmentation)\n'...
+            'Calculate in MNI Space (warp by DARTEL)\n'...
+            'Calculate in MNI Space (warp by information from unified segmentation)\n'...
+            'Calculate in MNI Space: TRADITIONAL order\n'...
+            'Intraoperative Processing\n'...
+            'VBM (New Segment and DARTEL)\n'...
+            'VBM (unified segmentation)\n'...
+            'Blank']);
+        set(handles.popupmenuTemplateParameters,'ToolTipString',TipString);
+    end
     
     handles.Cfg.DPARSFVersion=Release;
     handles.Cfg.WorkingDir=pwd;
@@ -914,12 +927,16 @@ function checkboxNormalize_Callback(hObject, eventdata, handles)
     
     
 function checkboxNormalizeResults_Callback(hObject, eventdata, handles)
-	if get(hObject,'Value')
-		handles.Cfg.IsNormalize = 1;
+    if get(hObject,'Value')
+        handles.Cfg.IsNormalize = 1;
         handles.Cfg.Normalize.Timing='OnResults';
-	else	
-		handles.Cfg.IsNormalize = 0;
-    end	
+
+        uiwait(msgbox({'Normalize the R-fMRI measures (derivatives) calculated in original space into MNI space.';...
+            },'Normalize Derivatives'));
+        
+    else
+        handles.Cfg.IsNormalize = 0;
+    end
     handles=CheckCfgParameters(handles);
 	guidata(hObject, handles);
 	UpdateDisplay(handles);     
@@ -990,6 +1007,10 @@ function checkboxSmoothByDARTEL_Callback(hObject, eventdata, handles)
 	if get(hObject,'Value')
 		handles.Cfg.IsSmooth = 1;
         handles.Cfg.Smooth.Timing='OnResults';
+        
+        uiwait(msgbox({'Smooth the calculated R-fMRI measures (derivatives).';...
+            },'Smooth Derivatives'));
+        
 	else	
 		handles.Cfg.IsSmooth = 0;
     end	

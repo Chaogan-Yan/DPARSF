@@ -243,7 +243,7 @@ if iter>0
       G_perm = G_perm(:,IndexRandPerm);       % permute cols
       
       for iRegressor=1:nRegressor
-          MS_perm  = trace(H_Regressor_Set(:,:,iRegressor)*G*H_Regressor_Set(:,:,iRegressor))/1;  %MS_perm  = trace(H*G_perm*H)/df.among;
+          MS_perm  = trace(H_Regressor_Set(:,:,iRegressor)*G_perm*H_Regressor_Set(:,:,iRegressor))/1;  %MS_perm  = trace(H*G_perm*H)/df.among;
           MSE_perm = trace((I-H)*G_perm*(I-H))/df.resid;
           F_perm(iITER,iRegressor) = MS_perm/MSE_perm;
       end

@@ -22,7 +22,7 @@ function varargout = DPARSF_ChooseGUI(varargin)
 
 % Edit the above text to modify the response to help DPARSF_ChooseGUI
 
-% Last Modified by GUIDE v2.5 03-Sep-2012 04:26:08
+% Last Modified by GUIDE v2.5 22-Sep-2012 23:27:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -104,5 +104,3 @@ handles.Choose = 2;
 guidata(hObject, handles);
 drawnow;
 uiresume(handles.figure1);
-
-
