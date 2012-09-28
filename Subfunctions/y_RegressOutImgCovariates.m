@@ -92,7 +92,10 @@ end
 if isfield(CovariablesDef,'CovMask')
     for iMask=1:length(CovariablesDef.CovMask)
         [iMaskData,iMaskVox,iMaskHead]=rest_readfile(CovariablesDef.CovMask{iMask});
-        TempTC = mean(AllVolume(:,find(iMaskData)),2);
+        
+        TempTC=reshape(AllVolume,[],nDim4);
+        TempTC = mean(TempTC(find(iMaskData),:))';
+
         theCovariables=[theCovariables,TempTC];
     end
 end
