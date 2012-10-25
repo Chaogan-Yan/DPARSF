@@ -235,6 +235,15 @@ AutoDataProcessParameter.CalALFF.ASamplePeriod=AutoDataProcessParameter.TR;
 AutoDataProcessParameter.CalfALFF.ASamplePeriod=AutoDataProcessParameter.TR;
 
 
+% Only One Session can be processed in Basic Edition. For Multiple Sessions
+% Processing, please go to DPARSFA.
+AutoDataProcessParameter.FunctionalSessionNumber=1;
+FunSessionPrefixSet={''}; 
+for iFunSession=2:AutoDataProcessParameter.FunctionalSessionNumber
+    FunSessionPrefixSet=[FunSessionPrefixSet;{['S',num2str(iFunSession),'_']}];
+end
+
+
 %Convert Functional DICOM files to NIFTI images
 if (AutoDataProcessParameter.IsNeedConvertFunDCM2IMG==1)
     for iFunSession=1:AutoDataProcessParameter.FunctionalSessionNumber
@@ -848,7 +857,7 @@ if (AutoDataProcessParameter.IsNormalize>0)
             Filename=[AutoDataProcessParameter.DataProcessDir,filesep,'FunImgNormalized',filesep,AutoDataProcessParameter.SubjectID{i},filesep,Dir(1).name];
             % Revised by YAN Chao-Gan, 100420. Fixed a bug in displaying overlay with different bounding box from those of underlay in according to rest_sliceviewer.m
             DPARSF_Normalized_TempImage =fullfile(tempdir,['DPARSF_Normalized_TempImage','_',rest_misc('GetCurrentUser'),'.img']);
-            y_Reslice(Filename,DPARSF_Normalized_TempImage,[1 1 1],0)
+            y_Reslice(Filename,DPARSF_Normalized_TempImage,[1 1 1],0);
             set(DPARSF_rest_sliceviewer_Cfg.Config(1).hUnderlayFile, 'String', DPARSF_Normalized_TempImage);
             set(DPARSF_rest_sliceviewer_Cfg.Config(1).hMagnify ,'Value',2);
 %             set(DPARSF_rest_sliceviewer_Cfg.Config(1).hUnderlayFile, 'String', Filename);
@@ -1140,7 +1149,7 @@ if (AutoDataProcessParameter.IsCovremove==1)
     end
     CovariatesROI=[CovariatesROI;AutoDataProcessParameter.Covremove.OtherCovariatesROI];
     for i=1:AutoDataProcessParameter.SubjectNum
-        y_ExtractROISignal([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,filesep,AutoDataProcessParameter.SubjectID{i}], SubjectCovariatesROI, [AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,'Covs',filesep,AutoDataProcessParameter.SubjectID{i}], '', 1);
+        y_ExtractROISignal([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,filesep,AutoDataProcessParameter.SubjectID{i}], CovariatesROI, [AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,'Covs',filesep,AutoDataProcessParameter.SubjectID{i}], '', 1);
     end
 
 
@@ -1155,8 +1164,7 @@ if (AutoDataProcessParameter.IsCovremove==1)
         end
         % YAN Chao-Gan, 101018
         if ~isempty(CovariatesROI)
-            load([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,'Covs',filesep,AutoDataProcessParameter.SubjectID{i},'_ROITimeCourses.mat']);
-            CovTC=[AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,'Covs',filesep,'ROISignals_',AutoDataProcessParameter.SubjectID{i},'.txt'];
+            CovTC=load([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,'Covs',filesep,'ROISignals_',AutoDataProcessParameter.SubjectID{i},'.txt']);
             Covariables=[Covariables,CovTC];
         end
 
@@ -1195,25 +1203,25 @@ if (AutoDataProcessParameter.IsExtractAALTC==1)
         eval(['AAL',AreaName,'Index=find(AALData==',num2str(iAAL),');']);
     end
     for i=1:AutoDataProcessParameter.SubjectNum
-        cd(AutoDataProcessParameter.SubjectID{i});
+        
         for iAAL=1:90
             AreaName=['0',num2str(iAAL)];
             AreaName=AreaName(end-1:end);
             eval(['AAL',AreaName,'TC=[];']);
         end
-        DirImg=dir('*.img');
-        for j=1:AutoDataProcessParameter.TimePoints
-            %Filename=['0000000',num2str(j)];Filename=Filename(end-7:end);Filename=[Filename,'.img'];
-            Filename=DirImg(j).name;
-            [Data, Vox, Head] = rest_readfile(Filename);
-            for iAAL=1:90
-                AreaName=['0',num2str(iAAL)];
-                AreaName=AreaName(end-1:end);
-                eval(['Temp=mean(Data(AAL',AreaName,'Index));']);
-                eval(['AAL',AreaName,'TC=[AAL',AreaName,'TC;Temp];']);
-            end
+        
+        [AllVolume,VoxelSize,theImgFileList, Header,nVolumn] =rest_to4d([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,filesep,AutoDataProcessParameter.SubjectID{i}]);
+        [nDim1,nDim2,nDim3,nDim4]=size(AllVolume);
+        
+        AllVolume=reshape(AllVolume,[],nDim4);
+        
+        for iAAL=1:90
+            AreaName=['0',num2str(iAAL)];
+            AreaName=AreaName(end-1:end);
+            eval(['Temp=mean(AllVolume(AAL',AreaName,'Index,:))'';']);
+            eval(['AAL',AreaName,'TC=[AAL',AreaName,'TC;Temp];']);
         end
-        cd('..');
+        
         save([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,'_AALTC',filesep,AutoDataProcessParameter.SubjectID{i},'_AALTC.mat'],'-regexp', 'AAL\w\wTC');
         fprintf(['Extract AAL Time Cources: ',AutoDataProcessParameter.SubjectID{i},' OK']);
     end
@@ -1277,11 +1285,10 @@ if (AutoDataProcessParameter.IsCalFC==1)
     cd([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir]);
     mkdir([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'FC']);
     for i=1:AutoDataProcessParameter.SubjectNum
-        
-        
+
         y_SCA([AutoDataProcessParameter.DataProcessDir,filesep,FunImgDir,filesep,AutoDataProcessParameter.SubjectID{i}], ...
             AutoDataProcessParameter.CalFC.ROIDef, ...
-            [AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'FC',filesep,'zROI',num2str(j),'FCMap_',AutoDataProcessParameter.SubjectID{i}], ...
+            [AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'FC',filesep,'FCMap_',AutoDataProcessParameter.SubjectID{i}], ...
             AutoDataProcessParameter.CalFC.AMaskFilename, ...
             0);
         

@@ -71,7 +71,7 @@ function DPARSF_OpeningFcn(hObject, eventdata, handles, varargin)
     fprintf('The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962; Child Mind Institute, 445 Park Avenue, New York, NY 10022; The Phyllis Green and Randolph Cowen Institute for Pediatric Neuroscience, New York University Child Study Center, New York, NY 10016\n');
     fprintf('Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a>\nhttp://www.restfmri.net\n');
     fprintf('-----------------------------------------------------------\n');
-    fprintf('Citing Information:\nIf you think DPARSFA is useful for your work, citing it in your paper would be greatly appreciated.\nSomething like "... The preprocessing was carried out by using Data Processing Assistant for Resting-State fMRI (DPARSF) (Yan & Zang, 2010, http://www.restfmri.net) which is based on Statistical Parametric Mapping (SPM8) (http://www.fil.ion.ucl.ac.uk/spm) and Resting-State fMRI Data Analysis Toolkit (REST, Song et al., 2011. http://www.restfmri.net)..."\nReference: Yan C and Zang Y (2010) DPARSF: a MATLAB toolbox for "pipeline" data analysis of resting-state fMRI. Front. Syst. Neurosci. 4:13. doi:10.3389/fnsys.2010.00013;     Song, X.W., Dong, Z.Y., Long, X.Y., Li, S.F., Zuo, X.N., Zhu, C.Z., He, Y., Yan, C.G., Zang, Y.F., 2011. REST: A Toolkit for Resting-State Functional Magnetic Resonance Imaging Data Processing. PLoS ONE 6, e25031.\n');
+    fprintf('Citing Information:\nIf you think DPARSF is useful for your work, citing it in your paper would be greatly appreciated.\nSomething like "... The preprocessing was carried out by using Data Processing Assistant for Resting-State fMRI (DPARSF) (Yan & Zang, 2010, http://www.restfmri.net) which is based on Statistical Parametric Mapping (SPM8) (http://www.fil.ion.ucl.ac.uk/spm) and Resting-State fMRI Data Analysis Toolkit (REST, Song et al., 2011. http://www.restfmri.net)..."\nReference: Yan C and Zang Y (2010) DPARSF: a MATLAB toolbox for "pipeline" data analysis of resting-state fMRI. Front. Syst. Neurosci. 4:13. doi:10.3389/fnsys.2010.00013;     Song, X.W., Dong, Z.Y., Long, X.Y., Li, S.F., Zuo, X.N., Zhu, C.Z., He, Y., Yan, C.G., Zang, Y.F., 2011. REST: A Toolkit for Resting-State Functional Magnetic Resonance Imaging Data Processing. PLoS ONE 6, e25031.\n');
     
     handles.hContextMenu =uicontextmenu;
     set(handles.listSubjectID, 'UIContextMenu', handles.hContextMenu);	%Added by YAN Chao-Gan 091110. Added popup menu to delete selected subject by right click.
@@ -409,6 +409,7 @@ function checkboxNormalize_Callback(hObject, eventdata, handles)
 		handles.Cfg.IsNormalize = 1;
 	else	
 		handles.Cfg.IsNormalize = 0;
+        handles.Cfg.IsNeedConvertT1DCM2IMG=0;
     end	
     handles=CheckCfgParameters(handles);
 	guidata(hObject, handles);
@@ -1019,7 +1020,7 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
             uiwait(msgbox('Please arrange each subject''s DICOM images in one directory, and then put them in "FunRaw" directory under the working directory!','Configuration parameters checking','warn'));
             return
         end
-    else %handles.Cfg.IsNeedConvertT1DCM2IMG
+    else %handles.Cfg.IsNeedConvertFunDCM2IMG
         if (handles.Cfg.IsSliceTiming==1) || (handles.Cfg.IsRealign==1) || (handles.Cfg.IsNormalize>0)
             if 7==exist([handles.Cfg.WorkingDir,filesep,'FunImg'],'dir')
                 if isempty (handles.Cfg.SubjectID)
@@ -1050,7 +1051,7 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
                 uiwait(msgbox('Please arrange each subject''s NIFTI images in one directory, and then put them in "FunImg" directory under the working directory!','Configuration parameters checking','warn'));
                 return
             end
-        else %IsNeedConvertT1DCM2IMG->IsSliceTiming, IsRealign, IsNormalize
+        else %IsNeedConvertFunDCM2IMG->IsSliceTiming, IsRealign, IsNormalize
             if (handles.Cfg.IsSmooth==1)
                 if 7==exist([handles.Cfg.WorkingDir,filesep,'FunImgNormalized'],'dir')
                     if isempty (handles.Cfg.SubjectID)
@@ -1073,7 +1074,7 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
                     uiwait(msgbox('Please arrange each subject''s normalized NIFTI images in one directory, and then put them in "FunImgNormalized" directory under the working directory!','Configuration parameters checking','warn'));
                     return
                 end
-            else %IsNeedConvertT1DCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth
+            else %IsNeedConvertFunDCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth
                 if (handles.Cfg.IsDetrend==1) || (handles.Cfg.IsFilter==1)
                     if (handles.Cfg.DataIsSmoothed==1)
                         FunImgDir='FunImgNormalizedSmoothed';
@@ -1104,7 +1105,7 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
                         uiwait(msgbox(['Please arrange each subject''s NIFTI images in one directory, and then put them in "',FunImgDir,'" directory under the working directory!'],'Configuration parameters checking','warn'));
                         return
                     end
-                else %IsNeedConvertT1DCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter
+                else %IsNeedConvertFunDCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter
                     if (handles.Cfg.IsCalReHo==1) || (handles.Cfg.IsCalALFF==1) || (handles.Cfg.IsCalfALFF==1)
                         if (handles.Cfg.DataIsSmoothed==1)
                             FunImgDir='FunImgNormalizedSmoothedDetrended';
@@ -1127,15 +1128,39 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
                                 end
                             end
                             DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.img']);
-                            if length(DirImg)~=(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints)
-                                uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(length(DirImg)),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
+                            
+                            if isempty(DirImg)  %YAN Chao-Gan, 111114. Also support .nii files.
+                                DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.nii']);
+                                if length(DirImg)>1
+                                    NTimePoints = length(DirImg);
+                                elseif length(DirImg)==1
+                                    Nii  = nifti([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name]);
+                                    NTimePoints = size(Nii.dat,4);
+                                elseif length(DirImg)==0
+                                    DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.nii.gz']);
+                                    if length(DirImg)==1
+                                        gunzip([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name]);
+                                        Nii  = nifti([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name(1:end-3)]);
+                                        delete([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name(1:end-3)]);
+                                        NTimePoints = size(Nii.dat,4);
+                                    else
+                                        uiwait(msgbox(['Too many .nii.gz files in each subject''s directory, should only keep one 4D .nii.gz file.'],'Configuration parameters checking','warn')); %YAN Chao-Gan 090922, %uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(length(DirImg)),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
+                                        return
+                                    end
+                                end
+                            else
+                                NTimePoints = length(DirImg);
+                            end
+                            
+                            if NTimePoints~=(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints)
+                                uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(NTimePoints),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
                                 return
                             end
                         else
                             uiwait(msgbox(['Please arrange each subject''s NIFTI images in one directory, and then put them in "',FunImgDir,'" directory under the working directory!'],'Configuration parameters checking','warn'));
                             return
                         end
-                    else %IsNeedConvertT1DCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter->ReHo,ALFF,fALFF
+                    else %IsNeedConvertFunDCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter->ReHo,ALFF,fALFF
                         if (handles.Cfg.IsCovremove==1)
                             if (handles.Cfg.DataIsSmoothed==1)
                                 FunImgDir='FunImgNormalizedSmoothedDetrendedFiltered';
@@ -1155,15 +1180,40 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
                                     end
                                 end
                                 DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.img']);
-                                if length(DirImg)~=(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints)
-                                    uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(length(DirImg)),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
+                                
+                                if isempty(DirImg)  %YAN Chao-Gan, 111114. Also support .nii files.
+                                    DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.nii']);
+                                    if length(DirImg)>1
+                                        NTimePoints = length(DirImg);
+                                    elseif length(DirImg)==1
+                                        Nii  = nifti([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name]);
+                                        NTimePoints = size(Nii.dat,4);
+                                    elseif length(DirImg)==0
+                                        DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.nii.gz']);
+                                        if length(DirImg)==1
+                                            gunzip([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name]);
+                                            Nii  = nifti([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name(1:end-3)]);
+                                            delete([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name(1:end-3)]);
+                                            NTimePoints = size(Nii.dat,4);
+                                        else
+                                            uiwait(msgbox(['Too many .nii.gz files in each subject''s directory, should only keep one 4D .nii.gz file.'],'Configuration parameters checking','warn')); %YAN Chao-Gan 090922, %uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(length(DirImg)),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
+                                            return
+                                        end
+                                    end
+                                else
+                                    NTimePoints = length(DirImg);
+                                end
+                                
+                                if NTimePoints~=(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints)
+                                    uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(NTimePoints),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
                                     return
                                 end
+
                             else
                                 uiwait(msgbox(['Please arrange each subject''s NIFTI images in one directory, and then put them in "',FunImgDir,'" directory under the working directory!'],'Configuration parameters checking','warn'));
                                 return
                             end
-                        else %IsNeedConvertT1DCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter->ReHo,ALFF,fALFF->CovRemove
+                        else %IsNeedConvertFunDCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter->ReHo,ALFF,fALFF->CovRemove
                             if (handles.Cfg.IsExtractRESTdefinedROITC==1) || (handles.Cfg.IsCalFC==1) || (handles.Cfg.IsExtractAALTC==1)
                                 if (handles.Cfg.DataIsSmoothed==1)
                                     FunImgDir='FunImgNormalizedSmoothedDetrendedFilteredCovremoved';
@@ -1183,15 +1233,40 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
                                         end
                                     end
                                     DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.img']);
-                                    if length(DirImg)~=(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints)
-                                        uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(length(DirImg)),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
+
+                                    if isempty(DirImg)  %YAN Chao-Gan, 111114. Also support .nii files.
+                                        DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.nii']);
+                                        if length(DirImg)>1
+                                            NTimePoints = length(DirImg);
+                                        elseif length(DirImg)==1
+                                            Nii  = nifti([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name]);
+                                            NTimePoints = size(Nii.dat,4);
+                                        elseif length(DirImg)==0
+                                            DirImg=dir([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,'*.nii.gz']);
+                                            if length(DirImg)==1
+                                                gunzip([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name]);
+                                                Nii  = nifti([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name(1:end-3)]);
+                                                delete([handles.Cfg.WorkingDir,filesep,FunImgDir,filesep,handles.Cfg.SubjectID{1},filesep,DirImg(1).name(1:end-3)]);
+                                                NTimePoints = size(Nii.dat,4);
+                                            else
+                                                uiwait(msgbox(['Too many .nii.gz files in each subject''s directory, should only keep one 4D .nii.gz file.'],'Configuration parameters checking','warn')); %YAN Chao-Gan 090922, %uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(length(DirImg)),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
+                                                return
+                                            end
+                                        end
+                                    else
+                                        NTimePoints = length(DirImg);
+                                    end
+                                    
+                                    if NTimePoints~=(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints)
+                                        uiwait(msgbox(['The detected time points of subject "',handles.Cfg.SubjectID{1},'" is: ',num2str(NTimePoints),', it is different from the predefined time points: ',num2str(handles.Cfg.TimePoints-handles.Cfg.RemoveFirstTimePoints),'. Please check your data!'],'Configuration parameters checking','warn'));
                                         return
                                     end
+
                                 else
                                     uiwait(msgbox(['Please arrange each subject''s NIFTI images in one directory, and then put them in "',FunImgDir,'" directory under the working directory!'],'Configuration parameters checking','warn'));
                                     return
                                 end
-                            else %IsNeedConvertT1DCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter->ReHo,ALFF,fALFF->CovRemove->Extract ROI TC, AAL TC, FC
+                            else %IsNeedConvertFunDCM2IMG->IsSliceTiming, IsRealign, IsNormalize->IsSmooth->Detrend, Filter->ReHo,ALFF,fALFF->CovRemove->Extract ROI TC, AAL TC, FC
 
                             end
                         end
@@ -1199,7 +1274,7 @@ function [handles, CheckingPass]=CheckCfgParameters(handles)
                  end
             end
         end %handles.Cfg.IsSliceTiming
-    end %handles.Cfg.IsNeedConvertT1DCM2IMG
+    end %handles.Cfg.IsNeedConvertFunDCM2IMG
     
     if handles.Cfg.TimePoints==0
         uiwait(msgbox('Please set the number of time points of your functional MRI data!','Configuration parameters checking','warn'));

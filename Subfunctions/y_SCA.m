@@ -64,11 +64,9 @@ VoxelSize = sqrt(sum(Header.mat(1:3,1:3).^2));
 
 
 if ischar(MaskData)
-    if ~isempty(MaskData)
-        [MaskData,MaskVox,MaskHead]=rest_readfile(MaskData);
-    else
-        MaskData=ones(nDim1,nDim2,nDim3);
-    end
+    fprintf('\n\t Load mask "%s".', MaskData);
+    MaskData = rest_loadmask(nDim1, nDim2, nDim3, MaskData);
+    MaskData = logical(MaskData);
 end
 
 % Convert into 2D
