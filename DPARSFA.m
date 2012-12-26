@@ -9,8 +9,8 @@ function varargout = DPARSFA(varargin)
 %	Written by YAN Chao-Gan
 %	http://www.restfmri.net
 % $mail     =ycg.yan@gmail.com
-% $Version =2.2PRE;
-% $Date =20120905;
+% $Version =2.2;
+% $Date =20121225;
 %-----------------------------------------------------------
 % 	Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a> 
 %   Last Modified by YAN Chao-Gan, 110505. Fixed an error in the future MATLAB version in "[pathstr, name, ext, versn] = fileparts...".
@@ -37,7 +37,7 @@ end
 
 % --- Executes just before DPARSFA is made visible.
 function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
-    Release='V2.2PRE_120905';
+    Release='V2.2_121225';
     
     if ispc
         UserName =getenv('USERNAME');
@@ -69,6 +69,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
         'Calculate in MNI Space (warp by information from unified segmentation)'...
         'Calculate in MNI Space: TRADITIONAL order'...
         'Intraoperative Processing'...
+        'Task fMRI data preprocessing'...
         'VBM (New Segment and DARTEL)'...
         'VBM (unified segmentation)'...
         'Blank'};
@@ -82,6 +83,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
             'Calculate in MNI Space (warp by information from unified segmentation)\n'...
             'Calculate in MNI Space: TRADITIONAL order\n'...
             'Intraoperative Processing\n'...
+            'Task fMRI data preprocessing\n'...
             'VBM (New Segment and DARTEL)\n'...
             'VBM (unified segmentation)\n'...
             'Blank']);
@@ -125,6 +127,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.Cfg.Covremove.PolynomialTrend=1;
     handles.Cfg.Covremove.HeadMotion=1;
     handles.Cfg.Covremove.IsHeadMotionScrubbingRegressors=0;
+    handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDType='FD_Power';
     handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDThreshold=0.5;
     handles.Cfg.Covremove.HeadMotionScrubbingRegressors.PreviousPoints=1;
     handles.Cfg.Covremove.HeadMotionScrubbingRegressors.LaterPoints=2;
@@ -169,6 +172,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     
     handles.Cfg.IsScrubbing=0;
     handles.Cfg.Scrubbing.Timing='AfterPreprocessing';
+    handles.Cfg.Scrubbing.FDType='FD_Power';
     handles.Cfg.Scrubbing.FDThreshold=0.5;
     handles.Cfg.Scrubbing.PreviousPoints=1;
     handles.Cfg.Scrubbing.LaterPoints=2;
@@ -176,6 +180,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     
     handles.Cfg.IsCalReHo=1;
     handles.Cfg.CalReHo.ClusterNVoxel=27;
+    handles.Cfg.CalReHo.SmoothReHo=0; %YAN Chao-Gan, 121225.
     %handles.Cfg.CalReHo.AMaskFilename='Default';
     %handles.Cfg.CalReHo.smReHo=1;
     %handles.Cfg.CalReHo.mReHo_1=1;
@@ -192,15 +197,29 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     
     handles.Cfg.IsExtractAALTC=0;
     
-    handles.Cfg.IsCalVMHC = 0;
     
     handles.Cfg.IsCWAS = 0;
     handles.Cfg.CWAS.Regressors = [];
     handles.Cfg.CWAS.iter = 0;
     
     
+    handles.Cfg.IsNormalizeToSymmetricGroupT1Mean = 0; %YAN Chao-Gan, 121225.
+    handles.Cfg.IsCalVMHC = 0;
+    
+    
     handles.Cfg.FunctionalSessionNumber=1; 
     handles.Cfg.StartingDirName='FunRaw';
+    
+    
+    %YAN Chao-Gan 121225.
+    %The Parameters set above is Template_CalculateInOriginalSpace_Warp_DARTEL.
+    %Now the default parameter is setting back to calculation in MNI space.
+    [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
+    load([ProgramPath,filesep,'Jobmats',filesep,'Template_CalculateInMNISpace_Warp_DARTEL.mat']);
+    handles.Cfg=Cfg;
+    handles.Cfg.WorkingDir =pwd;
+    handles.Cfg.DataProcessDir =handles.Cfg.WorkingDir;
+    
     
     handles.Cfg.ParallelWorkersNumber=0;%%%%
     % Check number of matlab workers. To start the matlabpool if Parallel Computation Toolbox is detected.
@@ -421,11 +440,13 @@ function popupmenuTemplateParameters_Callback(hObject, eventdata, handles)
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_CalculateInMNISpace_TraditionalOrder.mat']);
         case 7, %Intraoperative Processing
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_IntraoperativeProcessing.mat']);
-        case 8, %VBM (New Segment and DARTEL)
+        case 8, %Task fMRI data preprocessing
+            load([ProgramPath,filesep,'Jobmats',filesep,'Template_TaskfMRIPreprocessing.mat']);
+        case 9, %VBM (New Segment and DARTEL)
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_VBM_NewSegmentDARTEL.mat']);
-        case 9, %VBM (unified segmentaition)
+        case 10, %VBM (unified segmentaition)
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_VBM_UnifiedSegment.mat']);
-        case 10, %Blank
+        case 11, %Blank
             load([ProgramPath,filesep,'Jobmats',filesep,'Template_Blank.mat']);
     end
     
@@ -785,6 +806,17 @@ function radiobuttonRigidBody6_Callback(hObject, eventdata, handles)
     guidata(hObject, handles);
     UpdateDisplay(handles);
  
+function radiobuttonDerivative12_Callback(hObject, eventdata, handles) %YAN Chao-Gan, 121225.
+    if handles.Cfg.Covremove.HeadMotion~=2
+        handles.Cfg.Covremove.HeadMotion=2;
+    else
+        handles.Cfg.Covremove.HeadMotion=0;
+    end
+    drawnow;
+    guidata(hObject, handles);
+    UpdateDisplay(handles);
+    
+    
 function radiobuttonFriston24_Callback(hObject, eventdata, handles)
     if handles.Cfg.Covremove.HeadMotion~=4
         handles.Cfg.Covremove.HeadMotion=4;
@@ -823,7 +855,9 @@ function checkboxHeadMotionScrubbingRegressors_Callback(hObject, eventdata, hand
         handles.Cfg.Covremove.IsHeadMotionScrubbingRegressors=1;
         [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
         addpath([ProgramPath,filesep,'SubGUIs']);
-        [handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDThreshold,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.PreviousPoints,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.LaterPoints]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDThreshold,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.PreviousPoints,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.LaterPoints,'');
+        [handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDType,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDThreshold,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.PreviousPoints,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.LaterPoints]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDType,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDThreshold,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.PreviousPoints,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.LaterPoints,'');
+        %[handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDThreshold,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.PreviousPoints,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.LaterPoints]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDThreshold,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.PreviousPoints,handles.Cfg.Covremove.HeadMotionScrubbingRegressors.LaterPoints,'');
+        %YAN Chao-Gan, 121225. Added FDType.
         %Do not need to ScrubbingMethod, because using each bad time point as a separate regressor
     else
         handles.Cfg.Covremove.IsHeadMotionScrubbingRegressors=0;
@@ -1161,20 +1195,22 @@ function edtfAlffBandHigh_Callback(hObject, eventdata, handles)
     
     
 function checkboxScrubbing_Callback(hObject, eventdata, handles)
-	if get(hObject,'Value')
-		handles.Cfg.IsScrubbing = 1;
+    if get(hObject,'Value')
+        handles.Cfg.IsScrubbing = 1;
         handles.Cfg.Scrubbing.Timing='AfterPreprocessing';
-        [handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod);
+        [handles.Cfg.Scrubbing.FDType,handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Scrubbing.FDType,handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod);
+        %[handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod);
+        %YAN Chao-Gan, 121225. Added FD type.
         
-	else	
-		handles.Cfg.IsScrubbing = 0;
-    end	
+    else
+        handles.Cfg.IsScrubbing = 0;
+    end
     %handles.Cfg.CalReHo.AMaskFilename=handles.Cfg.MaskFile;
     handles=CheckCfgParameters(handles);
 	guidata(hObject, handles);
 	UpdateDisplay(handles);  
     
-    function checkboxCalReHo_Callback(hObject, eventdata, handles)
+function checkboxCalReHo_Callback(hObject, eventdata, handles)
     if get(hObject,'Value')
         handles.Cfg.IsCalReHo = 1;
     else
@@ -1208,6 +1244,23 @@ function radiobuttonReHo27voxels_Callback(hObject, eventdata, handles)
 	set(handles.radiobuttonReHo27voxels,'Value',1);
     guidata(hObject, handles);
 	UpdateDisplay(handles); 
+    
+function checkboxSmoothReHo_Callback(hObject, eventdata, handles)
+    if get(hObject,'Value')
+        
+        uiwait(msgbox({'ReHo is usually performed on unsmoothed data, thus need to be smoothed afterwards. This option is convenient if ReHo is the only measure need to be smoothed afterwards (e.g., performed in MNI space). Another option is "Smooth Derivatives", that option is convenient if all the measures need to be smoothed afterwards (e.g., performed in native space.)';...
+            },'Smooth ReHo'));
+        
+        handles.Cfg.CalReHo.SmoothReHo = 1;
+
+    else
+        handles.Cfg.CalReHo.SmoothReHo = 0;
+    end
+    %handles.Cfg.CalReHo.AMaskFilename=handles.Cfg.MaskFile;
+    handles=CheckCfgParameters(handles);
+	guidata(hObject, handles);
+	UpdateDisplay(handles); 
+    
  
 function checkboxCalDegreeCentrality_Callback(hObject, eventdata, handles)
     if get(hObject,'Value')
@@ -1251,19 +1304,25 @@ function checkboxExtractRESTdefinedROITC_Callback(hObject, eventdata, handles)
 	guidata(hObject, handles);
 	UpdateDisplay(handles);        
  
- function pushbuttonDefineROI_Callback(hObject, eventdata, handles)
-     ROIDef=handles.Cfg.CalFC.ROIDef;
-     %if isempty(ROIDef)
-     [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
-     addpath([ProgramPath,filesep,'SubGUIs']);
-    [ROIDef,IsMultipleLabel]=DPARSF_ROI_Template(ROIDef,handles.Cfg.CalFC.IsMultipleLabel);
-    handles.Cfg.CalFC.IsMultipleLabel = IsMultipleLabel;
-    %end
+function pushbuttonDefineROI_Callback(hObject, eventdata, handles)
+    ROIDef=handles.Cfg.CalFC.ROIDef;
+    if isempty(ROIDef)
+        [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
+        addpath([ProgramPath,filesep,'SubGUIs']);
+        [ROIDef,IsMultipleLabel]=DPARSF_ROI_Template(ROIDef,handles.Cfg.CalFC.IsMultipleLabel);
+        handles.Cfg.CalFC.IsMultipleLabel = IsMultipleLabel;
+    end
+    
+    if handles.Cfg.CalFC.IsMultipleLabel
+        fprintf('\nIsMultipleLabel is set to 1: There are multiple labels in the ROI mask file.\n');
+    else
+        fprintf('\nIsMultipleLabel is set to 0: All the non-zero values will be used to define the only ROI.\n');
+    end
     
     ROIDef=rest_ROIList_gui(ROIDef);
     handles.Cfg.CalFC.ROIDef=ROIDef;
     guidata(hObject, handles);
-	UpdateDisplay(handles); 
+    UpdateDisplay(handles);
 
 function checkboxDefineROIInteractively_Callback(hObject, eventdata, handles)
 	if get(hObject,'Value')
@@ -1308,6 +1367,26 @@ function checkboxWarpMasksIntoIndividualSpace_Callback(hObject, eventdata, handl
 	UpdateDisplay(handles);    
 
     
+function checkboxNormalizeToSymmetricGroupT1Mean_Callback(hObject, eventdata, handles) %YAN Chao-Gan, 121225.
+    if get(hObject,'Value')
+        
+        uiwait(msgbox({'If you want to perform VMHC analyses, you may want to normalize the data further to a symmetric template. This option including the following steps:';...
+            '1. Get the T1 images in MNI space (e.g., wco*.img or wco*.nii under T1ImgNewSegment or T1ImgSegment) for each subject, and then create a mean T1 image template (averaged across all the subjects).';...
+            '2. Create a symmetric T1 template by averaging the mean T1 template (created in Step 1) with it''s flipped version (flipped over x axis).';...
+            '3. Normalize the T1 image in MNI space (e.g., wco*.img or wco*.nii under T1ImgNewSegment or T1ImgSegment) for each subject to the symmetric T1 template (created in Step 2), and apply the transformations to the functional data (which have been normalized to MNI space beforehand).';...
+            'Ref: Zuo et al., J Neurosci 30, 15034-15043.';...
+            },'Normalize To Symmetric Group T1 Mean Template'));
+        
+        handles.Cfg.IsNormalizeToSymmetricGroupT1Mean = 1;
+
+    else
+        handles.Cfg.IsNormalizeToSymmetricGroupT1Mean = 0;
+    end
+    handles=CheckCfgParameters(handles);
+	guidata(hObject, handles);
+	UpdateDisplay(handles); 
+    
+
 function checkboxCalVMHC_Callback(hObject, eventdata, handles)
 	if get(hObject,'Value')
         handles.Cfg.IsCalVMHC = 1;
@@ -1375,7 +1454,7 @@ function editFunctionalSessionNumber_Callback(hObject, eventdata, handles)
     
 function editStartingDirName_Callback(hObject, eventdata, handles)
     uiwait(msgbox({'If you do not start with raw DICOM images, you need to specify the Starting Directory Name.';...
-        'E.g. "FunImgARW" means you start with images which have been slice timed, realigned and normalized.';...
+        'E.g. "FunImgARW" means you start with images which have been slice timing corrected, realigned and normalized.';...
         '';...
         'Abbreviations:';...
         'A - Slice Timing;';...
@@ -1386,6 +1465,7 @@ function editStartingDirName_Callback(hObject, eventdata, handles)
         'F - Filter';...
         'C - Covariates Removed';...
         'B - ScruBBing';...
+        'sym - Normalized to a symmetric template';...
         },'Tips for Starting Directory Name'));
 
     handles.Cfg.StartingDirName=get(hObject,'String');
@@ -1434,30 +1514,29 @@ function handles=pushbuttonLoad_Callback(hObject, eventdata, handles)
 function SetLoadedData(hObject,handles, Cfg);	
     handles.Cfg=Cfg;
 
-    if ~isfield(handles.Cfg,'FunctionalSessionNumber')
-        handles.Cfg.FunctionalSessionNumber=1;
+    if ~isfield(handles.Cfg,'DPARSFVersion')
+        uiwait(msgbox({'The current version doesn''t support the mat files saved in version earlier than DPARSFA V2.2.';...
+        },'Version Compatibility'));
     end
-%     if ~isfield(handles.Cfg,'IsNeedConvert4DFunInto3DImg')
-%         handles.Cfg.IsNeedConvert4DFunInto3DImg=0;
-%     end
-    if ~isfield(handles.Cfg,'IsNeedReorientFunImgInteractively')
-        handles.Cfg.IsNeedReorientFunImgInteractively=0;
+    
+    
+    if ~isfield(handles.Cfg.Covremove.HeadMotionScrubbingRegressors,'FDType')
+        handles.Cfg.Covremove.HeadMotionScrubbingRegressors.FDType='FD_Power';
     end
-%     if ~isfield(handles.Cfg,'IsNeedUnzipT1IntoT1Img')
-%         handles.Cfg.IsNeedUnzipT1IntoT1Img=0;
-%     end
-    if ~isfield(handles.Cfg,'IsNeedReorientCropT1Img')
-        handles.Cfg.IsNeedReorientCropT1Img=0;
+    
+    if ~isfield(handles.Cfg.Scrubbing,'FDType')
+        handles.Cfg.Scrubbing.FDType='FD_Power';
     end
-    if ~isfield(handles.Cfg,'IsNeedReorientT1ImgInteractively')
-        handles.Cfg.IsNeedReorientT1ImgInteractively=0;
+    
+    
+    if ~isfield(handles.Cfg.CalReHo,'SmoothReHo')
+        handles.Cfg.CalReHo.SmoothReHo=0;
     end
-    if isfield(handles.Cfg,'IsNeedReorientInteractively')
-        handles.Cfg.IsNeedReorientInteractivelyAfterCoreg = handles.Cfg.IsNeedReorientInteractively;
+    
+    if ~isfield(handles.Cfg,'IsNormalizeToSymmetricGroupT1Mean')
+        handles.Cfg.IsNormalizeToSymmetricGroupT1Mean=0;
     end
-    if ~isfield(handles.Cfg,'IsDARTEL')
-        handles.Cfg.IsDARTEL=0;
-    end
+
 
     guidata(hObject, handles);
     UpdateDisplay(handles);
@@ -1683,6 +1762,7 @@ function UpdateDisplay(handles)
             set(handles.editPolynomialTrend, 'Enable', 'on', 'String', num2str(handles.Cfg.Covremove.PolynomialTrend), 'ForegroundColor', 'k');
             set(handles.textHeadMotionModel, 'Enable', 'on', 'ForegroundColor', 'k');
             set(handles.radiobuttonRigidBody6, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==1, 'ForegroundColor', 'k');
+            set(handles.radiobuttonDerivative12, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==2, 'ForegroundColor', 'k');
             set(handles.radiobuttonFriston24, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==4, 'ForegroundColor', 'k');
             set(handles.radiobuttonVoxelSpecific3, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==11, 'ForegroundColor', 'k');
             set(handles.radiobuttonVoxelSpecific12, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==14, 'ForegroundColor', 'k');
@@ -1698,6 +1778,7 @@ function UpdateDisplay(handles)
             set(handles.editPolynomialTrend, 'Enable', 'on', 'String', num2str(handles.Cfg.Covremove.PolynomialTrend), 'ForegroundColor', 'b');
             set(handles.textHeadMotionModel, 'Enable', 'on', 'ForegroundColor', 'b');
             set(handles.radiobuttonRigidBody6, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==1, 'ForegroundColor', 'b');
+            set(handles.radiobuttonDerivative12, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==2, 'ForegroundColor', 'b');
             set(handles.radiobuttonFriston24, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==4, 'ForegroundColor', 'b');
             set(handles.radiobuttonVoxelSpecific3, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==11, 'ForegroundColor', 'b');
             set(handles.radiobuttonVoxelSpecific12, 'Enable', 'on', 'Value', handles.Cfg.Covremove.HeadMotion==14, 'ForegroundColor', 'b');
@@ -1714,6 +1795,7 @@ function UpdateDisplay(handles)
         set(handles.editPolynomialTrend, 'Enable', 'off', 'String', num2str(handles.Cfg.Covremove.PolynomialTrend), 'ForegroundColor', 'k');
         set(handles.textHeadMotionModel, 'Enable', 'off', 'ForegroundColor', 'k');
         set(handles.radiobuttonRigidBody6, 'Enable', 'off', 'Value', handles.Cfg.Covremove.HeadMotion==1, 'ForegroundColor', 'k');
+        set(handles.radiobuttonDerivative12, 'Enable', 'off', 'Value', handles.Cfg.Covremove.HeadMotion==2, 'ForegroundColor', 'k');
         set(handles.radiobuttonFriston24, 'Enable', 'off', 'Value', handles.Cfg.Covremove.HeadMotion==4, 'ForegroundColor', 'k');
         set(handles.radiobuttonVoxelSpecific3, 'Enable', 'off', 'Value', handles.Cfg.Covremove.HeadMotion==11, 'ForegroundColor', 'k');
         set(handles.radiobuttonVoxelSpecific12, 'Enable', 'off', 'Value', handles.Cfg.Covremove.HeadMotion==14, 'ForegroundColor', 'k');
@@ -1858,6 +1940,7 @@ function UpdateDisplay(handles)
         set(handles.radiobuttonReHo7voxels, 'Enable', 'on', 'Value', handles.Cfg.CalReHo.ClusterNVoxel == 7);
         set(handles.radiobuttonReHo19voxels, 'Enable', 'on', 'Value', handles.Cfg.CalReHo.ClusterNVoxel == 19);
         set(handles.radiobuttonReHo27voxels, 'Enable', 'on', 'Value', handles.Cfg.CalReHo.ClusterNVoxel == 27);
+        set(handles.checkboxSmoothReHo, 'Enable', 'on', 'Value', handles.Cfg.CalReHo.SmoothReHo); %YAN Chao-Gan, 121225.
         %set(handles.checkboxsmReHo, 'Enable', 'on', 'Value', handles.Cfg.CalReHo.smReHo);
         %set(handles.checkboxmReHo_1, 'Enable', 'on', 'Value', handles.Cfg.CalReHo.mReHo_1);
         set(handles.textReHoCluster,'Enable', 'on');
@@ -1866,6 +1949,7 @@ function UpdateDisplay(handles)
         set(handles.radiobuttonReHo7voxels, 'Enable', 'off', 'Value', handles.Cfg.CalReHo.ClusterNVoxel == 7);
         set(handles.radiobuttonReHo19voxels, 'Enable', 'off', 'Value', handles.Cfg.CalReHo.ClusterNVoxel == 19);
         set(handles.radiobuttonReHo27voxels, 'Enable', 'off', 'Value', handles.Cfg.CalReHo.ClusterNVoxel == 27);
+        set(handles.checkboxSmoothReHo, 'Enable', 'off', 'Value', handles.Cfg.CalReHo.SmoothReHo); %YAN Chao-Gan, 121225.
         %set(handles.checkboxsmReHo, 'Enable', 'off', 'Value', handles.Cfg.CalReHo.smReHo);
         %set(handles.checkboxmReHo_1, 'Enable', 'off', 'Value', handles.Cfg.CalReHo.mReHo_1);
         set(handles.textReHoCluster,'Enable', 'off');
@@ -1889,9 +1973,14 @@ function UpdateDisplay(handles)
     
     set(handles.checkboxExtractAALTC, 'Value', handles.Cfg.IsExtractAALTC, 'Visible', 'off');
     
+    set(handles.checkboxNormalizeToSymmetricGroupT1Mean, 'Value', handles.Cfg.IsNormalizeToSymmetricGroupT1Mean); %YAN Chao-Gan, 121225.
     set(handles.checkboxCalVMHC, 'Value', handles.Cfg.IsCalVMHC);
     
-    set(handles.checkboxCWAS, 'Value', handles.Cfg.IsCWAS);
+    if handles.Cfg.IsCWAS
+        set(handles.checkboxCWAS, 'Value', handles.Cfg.IsCWAS, 'ForegroundColor', 'k');
+    else
+        set(handles.checkboxCWAS, 'Value', handles.Cfg.IsCWAS, 'ForegroundColor', [0.4,0.4,0.4]);
+    end
     
     
     set(handles.editFunctionalSessionNumber ,'String', num2str(handles.Cfg.FunctionalSessionNumber));	

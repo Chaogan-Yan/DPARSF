@@ -7,8 +7,8 @@ function varargout = DPARSF(varargin)
 %	Written by YAN Chao-Gan
 %	http://www.restfmri.net
 % $mail     =ycg.yan@gmail.com
-% $Version =2.2PRE;
-% $Date =20101025;
+% $Version =2.2;
+% $Date =20121225;
 %-----------------------------------------------------------
 % 	Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a> 
 
@@ -22,7 +22,9 @@ function varargout = DPARSF(varargin)
 % Modified by YAN Chao-Gan, 100510. Added a right-click menu to delete all the participants.
 % Modified by YAN Chao-Gan, 101025. Fixed the bug of 'copying co*'.
 % Modified by YAN Chao-Gan, 110505. Fixed an error in the future MATLAB version in "[pathstr, name, ext, versn] = fileparts...".
-% Last Modified by YAN Chao-Gan, 120101. Nomralize by DARTEL added.
+% Modified by YAN Chao-Gan, 120101. Nomralize by DARTEL added.
+% Modified by YAN Chao-Gan, 120905. DPARSF V2.2 PRE.
+% Modified by YAN Chao-Gan, 121225. DPARSF V2.2.
 
 
 % Begin initialization code - DO NOT EDIT
@@ -47,7 +49,7 @@ end
 
 % --- Executes just before DPARSF is made visible.
 function DPARSF_OpeningFcn(hObject, eventdata, handles, varargin)
-    Release='V2.2PRE_120905';
+    Release='V2.2_121225';
     
     [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
     addpath([ProgramPath,filesep,'SubGUIs']);

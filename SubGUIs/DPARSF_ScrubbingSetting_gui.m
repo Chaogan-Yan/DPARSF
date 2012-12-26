@@ -1,14 +1,16 @@
 function varargout = DPARSF_ScrubbingSetting_gui(varargin)
 %   varargout = DPARSF_ScrubbingSetting_gui(varargin)
 %   GUI for setting parameters for Scrubbing.
-%   Input: FDThreshold, PreviousPoints, LaterPoints, ScrubbingMethod.
-%   Output: FDThreshold, PreviousPoints, LaterPoints, ScrubbingMethod.
+%   Input: FDType, FDThreshold, PreviousPoints, LaterPoints, ScrubbingMethod.
+%   Output: FDType, FDThreshold, PreviousPoints, LaterPoints, ScrubbingMethod.
 %-----------------------------------------------------------
 % Written by YAN Chao-Gan 120830.
 % The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962, USA
 % Child Mind Institute, 445 Park Avenue, New York, NY 10022, USA
 % The Phyllis Green and Randolph Cowen Institute for Pediatric Neuroscience, New York University Child Study Center, New York, NY 10016, USA
 % ycg.yan@gmail.com
+
+% Revised by YAN Chao-Gan, 121225. Added the option of FDType.
 
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -32,11 +34,13 @@ end
 % --- Executes just before rest_FDR is made visible.
 function DPARSF_ScrubbingSetting_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 if ~isempty(varargin),
-    handles.FDThreshold =varargin{1};
-    handles.PreviousPoints =varargin{2};
-    handles.LaterPoints =varargin{3};
-    handles.ScrubbingMethod =varargin{4};
+    handles.FDType =varargin{1};
+    handles.FDThreshold =varargin{2};
+    handles.PreviousPoints =varargin{3};
+    handles.LaterPoints =varargin{4};
+    handles.ScrubbingMethod =varargin{5};
 else
+    handles.FDType = 'FD_Power';
     handles.FDThreshold = 0.5;
     handles.PreviousPoints = 1;
     handles.LaterPoints = 2;
@@ -77,11 +81,13 @@ if isempty(handles)
     varargout{2} = '';
     varargout{3} = '';
     varargout{4} = '';
+    varargout{5} = '';
 else    
-    varargout{1} = handles.FDThreshold;
-    varargout{2} = handles.PreviousPoints;
-    varargout{3} = handles.LaterPoints;
-    varargout{4} = handles.ScrubbingMethod;
+    varargout{1} = handles.FDType;
+    varargout{2} = handles.FDThreshold;
+    varargout{3} = handles.PreviousPoints;
+    varargout{4} = handles.LaterPoints;
+    varargout{5} = handles.ScrubbingMethod;
     delete(handles.figScrubbingSetting);
 end
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -101,6 +107,9 @@ uiresume(handles.figScrubbingSetting);
 
 
 function InitControls(hObject, handles)
+
+set(handles.radiobuttonFD_Power,'Value',strcmpi(handles.FDType,'FD_Power'));
+set(handles.radiobuttonFD_Jenkinson,'Value',strcmpi(handles.FDType,'FD_Jenkinson'));
 
 set(handles.editFDThreshold,'String',num2str(handles.FDThreshold));
 set(handles.editPreviousPoints,'String',num2str(handles.PreviousPoints));
@@ -125,6 +134,25 @@ end
 
 guidata(hObject, handles);
 
+
+
+
+
+% --- Executes on button press in radiobuttonFD_Power.
+function radiobuttonFD_Power_Callback(hObject, eventdata, handles)
+handles.FDType = 'FD_Power';
+guidata(hObject, handles);
+set(handles.radiobuttonFD_Power,'Value',1);
+set(handles.radiobuttonFD_Jenkinson,'Value',0);
+drawnow;
+
+% --- Executes on button press in radiobuttonFD_Jenkinson.
+function radiobuttonFD_Jenkinson_Callback(hObject, eventdata, handles)
+handles.FDType = 'FD_Jenkinson';
+guidata(hObject, handles);
+set(handles.radiobuttonFD_Power,'Value',0);
+set(handles.radiobuttonFD_Jenkinson,'Value',1);
+drawnow;
 
 
 
@@ -244,5 +272,6 @@ set(handles.rtnM3,'Value',0);
 set(handles.rtnM4,'Value',0);
 set(handles.rtnM5,'Value',1);
 drawnow;
+
 
 

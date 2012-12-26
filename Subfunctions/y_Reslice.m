@@ -18,7 +18,8 @@ function [OutVolume] = y_Reslice(InputFile,OutputFile,NewVoxSize,hld, TargetSpac
 % ycg.yan@gmail.com
 %__________________________________________________________________________
 % Revised by YAN Chao-Gan 100401. Fixed a bug while calculating the new dimension.
-% Last Revised by YAN Chao-Gan 120229. Simplified the processing.
+% Revised by YAN Chao-Gan 120229. Simplified the processing.
+% Last Revised by YAN Chao-Gan 121214. Fixed the brain edge artifact when reslice to a bigger FOV. Apply a mask from the source image: don't extend values to outside brain.
 
 if nargin<=4
     TargetSpace='ImageItself';
@@ -56,7 +57,17 @@ y1   = M(1,1)*x1+M(1,2)*x2+(M(1,3)*x3+M(1,4));
 y2   = M(2,1)*x1+M(2,2)*x2+(M(2,3)*x3+M(2,4));
 y3   = M(3,1)*x1+M(3,2)*x2+(M(3,3)*x3+M(3,4));
 
+
 OutVolume    = spm_bsplins(C, y1,y2,y3, d);
+
+%Revised by YAN Chao-Gan 121214. Apply a mask from the source image: don't extend values to outside brain.
+tiny = 5e-2; % From spm_vol_utils.c
+Mask = true(size(y1));
+Mask = Mask & (y1 >= (1-tiny) & y1 <= (SourceHead.dim(1)+tiny));
+Mask = Mask & (y2 >= (1-tiny) & y2 <= (SourceHead.dim(2)+tiny));
+Mask = Mask & (y3 >= (1-tiny) & y3 <= (SourceHead.dim(3)+tiny));
+
+OutVolume(~Mask) = 0;
 
 
 OutHead=SourceHead;

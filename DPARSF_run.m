@@ -111,7 +111,9 @@ function [Error]=DPARSF_run(AutoDataProcessParameter)
 % Modified by YAN Chao-Gan, 100420. Release the memory occupied by "hdr" after converting one participant's Functional DICOM files to NIFTI images in linux. Make compatible with missing parameters. Fixed a bug in generating the pictures for checking normalizationdisplaying when overlay with different bounding box from those of underlay in according to rest_sliceviewer.m.
 % Modified by YAN Chao-Gan, 100510. Fixed a bug in converting DICOM files to NIfTI in Windows 7, thanks to Prof. Chris Rorden's new dcm2nii. Now will detect if co* T1 image is exist before normalization by using T1 image unified segmentation.
 % Modified by YAN Chao-Gan, 101025. Fixed a bug in copying *.ps files.
-% Last Modified by YAN Chao-Gan, 120101. Nomralize by DARTEL added.
+% Modified by YAN Chao-Gan, 120101. Nomralize by DARTEL added.
+% Modified by YAN Chao-Gan, 120905. DPARSF V2.2 PRE.
+% Modified by YAN Chao-Gan, 121225. DPARSF V2.2.
 
 
 if ischar(AutoDataProcessParameter)  %If inputed a .mat file name. (Cfg inside)
@@ -1045,7 +1047,7 @@ if (AutoDataProcessParameter.IsCalReHo==1)
                               
         if AutoDataProcessParameter.CalReHo.smReHo == 1
             load([ProgramPath,filesep,'Jobmats',filesep,'Smooth.mat']);
-            FileList=[{[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'mReHoMap_',AutoDataProcessParameter.SubjectID{i},'.img,1']}];
+            FileList=[{[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'mReHoMap_',AutoDataProcessParameter.SubjectID{i},'.nii,1']}];
             jobs{1,1}.spatial{1,1}.smooth.data=[jobs{1,1}.spatial{1,1}.smooth.data;FileList];
             jobs{1,1}.spatial{1,1}.smooth.fwhm=AutoDataProcessParameter.Smooth.FWHM;
             if SPMversion==5
