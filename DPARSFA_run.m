@@ -1059,6 +1059,7 @@ if (AutoDataProcessParameter.IsNeedT1CoregisterToFun==1)
                 end
             else %4D .nii images
                 [Data, Header] = rest_ReadNiftiImage(DirImg(1).name);
+                AllVolume = Data;                                          %added by ORSOLINI ~ 12 february 2013
             end
             
             AllVolume=mean(AllVolume,4);
