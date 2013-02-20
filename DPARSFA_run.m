@@ -1093,6 +1093,8 @@ if (AutoDataProcessParameter.IsNeedT1CoregisterToFun==1)
             spm_jobman('run',SPMJOB.jobs);
         elseif SPMversion==8  %YAN Chao-Gan, 090925. SPM8 compatible.
             SPMJOB.jobs = spm_jobman('spm5tospm8',{SPMJOB.jobs});
+            [SPMJOB.jobs{1,1}{1,1}.spm.spatial.coreg.('estwrite')] = SPMJOB.jobs{1,1}{1,1}.spm.spatial.coreg.('estimate');                  %added by ORSOLINI
+            SPMJOB.jobs{1,1}{1,1}.spm.spatial.coreg = rmfield(SPMJOB.jobs{1,1}{1,1}.spm.spatial.coreg, 'estimate');                         %added by ORSOLINI
             spm_jobman('run',SPMJOB.jobs{1});
         else
             uiwait(msgbox('The current SPM version is not supported by DPARSF. Please install SPM5 or SPM8 first.','Invalid SPM Version.'));
