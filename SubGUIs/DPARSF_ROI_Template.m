@@ -69,7 +69,7 @@ end
 
 
 % Make Display correct in linux
-if ispc
+if ~ismac
     ZoomFactor=0.85;
     ObjectNames = fieldnames(handles);
     for i=1:length(ObjectNames);

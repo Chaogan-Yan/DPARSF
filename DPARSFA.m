@@ -10,7 +10,7 @@ function varargout = DPARSFA(varargin)
 %	http://www.restfmri.net
 % $mail     =ycg.yan@gmail.com
 % $Version =2.2;
-% $Date =20121225;
+% $Date =20130224;
 %-----------------------------------------------------------
 % 	Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a> 
 %   Last Modified by YAN Chao-Gan, 110505. Fixed an error in the future MATLAB version in "[pathstr, name, ext, versn] = fileparts...".
@@ -37,7 +37,8 @@ end
 
 % --- Executes just before DPARSFA is made visible.
 function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
-    Release='V2.2_121225';
+    Release='V2.2_130224';
+    handles.Release = Release; % Will be used in mat file version checking (e.g., in function SetLoadedData)
     
     if ispc
         UserName =getenv('USERNAME');
@@ -1198,6 +1199,8 @@ function checkboxScrubbing_Callback(hObject, eventdata, handles)
     if get(hObject,'Value')
         handles.Cfg.IsScrubbing = 1;
         handles.Cfg.Scrubbing.Timing='AfterPreprocessing';
+        [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
+        addpath([ProgramPath,filesep,'SubGUIs']); %YAN Chao-Gan, 130110. Fixed a bug for didn't adding the GUI path.
         [handles.Cfg.Scrubbing.FDType,handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Scrubbing.FDType,handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod);
         %[handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod]=DPARSF_ScrubbingSetting_gui(handles.Cfg.Scrubbing.FDThreshold,handles.Cfg.Scrubbing.PreviousPoints,handles.Cfg.Scrubbing.LaterPoints,handles.Cfg.Scrubbing.ScrubbingMethod);
         %YAN Chao-Gan, 121225. Added FD type.
@@ -1513,10 +1516,17 @@ function handles=pushbuttonLoad_Callback(hObject, eventdata, handles)
 
 function SetLoadedData(hObject,handles, Cfg);	
     handles.Cfg=Cfg;
-
+    
     if ~isfield(handles.Cfg,'DPARSFVersion')
         uiwait(msgbox({'The current version doesn''t support the mat files saved in version earlier than DPARSFA V2.2.';...
-        },'Version Compatibility'));
+            },'Version Compatibility'));
+    else
+        % YAN Chao-Gan, 130224. Update the DPARSF Version information.
+        if str2num(handles.Cfg.DPARSFVersion(end-5:end)) ~= str2num(handles.Release(end-5:end))
+            uiwait(msgbox({['The mat file is created with DPARSFA ',handles.Cfg.DPARSFVersion,', and now is succesfully updated to DPARSFA ',handles.Release,'.'];...
+                },'Version Compatibility'));
+            handles.Cfg.DPARSFVersion = handles.Release;
+        end
     end
     
     

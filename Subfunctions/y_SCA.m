@@ -212,7 +212,7 @@ end
 
 
 %Merge the seed series cell into seed series matrix
-SeedSeries = cell2mat(SeedSeries);
+SeedSeries = double(cell2mat(SeedSeries)); %Suggested by H. Baetschmann.  % SeedSeries = cell2mat(SeedSeries);
 
 
 %Save the ROI averaged time course to disk for further study

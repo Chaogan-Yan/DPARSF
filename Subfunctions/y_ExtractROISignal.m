@@ -213,7 +213,7 @@ end
 
 
 %Merge the seed series cell into seed series matrix
-ROISignals = cell2mat(SeedSeries);
+ROISignals = double(cell2mat(SeedSeries)); %Suggested by H. Baetschmann.    %ROISignals = cell2mat(SeedSeries);
 
 
 %Save the results

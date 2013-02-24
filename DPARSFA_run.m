@@ -131,14 +131,14 @@ end
 %     AutoDataProcessParameter.IsCalfALFF=0; 
 % end
 if ~isfield(AutoDataProcessParameter,'IsScrubbing')
-    AutoDataProcessParameter.IsScrubbing=0; 
+    AutoDataProcessParameter.IsScrubbing=0;
 end
 if ~isfield(AutoDataProcessParameter,'IsCalReHo')
-    AutoDataProcessParameter.IsCalReHo=0; 
-end
-
-if ~isfield(AutoDataProcessParameter.CalReHo,'SmoothReHo')
-    AutoDataProcessParameter.CalReHo.SmoothReHo=0;
+    AutoDataProcessParameter.IsCalReHo=0;
+else
+    if isfield(AutoDataProcessParameter,'CalReHo') && (~isfield(AutoDataProcessParameter.CalReHo,'SmoothReHo')) %YAN Chao-Gan, 121227.
+        AutoDataProcessParameter.CalReHo.SmoothReHo=0;
+    end
 end
 
 if ~isfield(AutoDataProcessParameter,'IsCalDegreeCentrality')
@@ -823,7 +823,7 @@ if (AutoDataProcessParameter.IsNeedReorientFunImgInteractively==1)
                     end
                 end
             else %4D .nii images
-                [Data, Header] = rest_ReadNiftiImage(DirImg(1).name);
+                [AllVolume, Header] = rest_ReadNiftiImage(DirImg(1).name); %Revised according to ORSOLINI's suggestion ~ 12 february 2013
             end
             
             AllVolume=mean(AllVolume,4);
@@ -1058,7 +1058,7 @@ if (AutoDataProcessParameter.IsNeedT1CoregisterToFun==1)
                     end
                 end
             else %4D .nii images
-                [Data, Header] = rest_ReadNiftiImage(DirImg(1).name);
+                [AllVolume, Header] = rest_ReadNiftiImage(DirImg(1).name); %Revised according to ORSOLINI's suggestion ~ 12 february 2013
             end
             
             AllVolume=mean(AllVolume,4);
@@ -2520,6 +2520,9 @@ if (AutoDataProcessParameter.IsCovremove==1) && (strcmpi(AutoDataProcessParamete
             
             %Head Motion
             ImgCovModel = 1; %Default
+            
+            CovariablesDef.CovMat = []; %YAN Chao-Gan, 130116. Fixed a bug when CovMat is not defined.
+            
             if (AutoDataProcessParameter.Covremove.HeadMotion==1) %1: Use the current time point of rigid-body 6 realign parameters. e.g., Txi, Tyi, Tzi...
                 DirRP=dir([AutoDataProcessParameter.DataProcessDir,filesep,'RealignParameter',filesep,AutoDataProcessParameter.SubjectID{i},filesep,FunSessionPrefixSet{iFunSession},'rp*']);
                 Q1=load([AutoDataProcessParameter.DataProcessDir,filesep,'RealignParameter',filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirRP.name]);

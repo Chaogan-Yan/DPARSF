@@ -1045,9 +1045,21 @@ if (AutoDataProcessParameter.IsCalReHo==1)
                                   [AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'mReHoMap_',AutoDataProcessParameter.SubjectID{i}], ...
                                   AutoDataProcessParameter.CalReHo.AMaskFilename);
                               
+        [ReHoBrain,Vox,Header] = rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'ReHoMap_',AutoDataProcessParameter.SubjectID{i}]);
+        BrainMaskData = rest_readfile(AutoDataProcessParameter.CalReHo.AMaskFilename);
+        Temp = ((ReHoBrain - mean(ReHoBrain(find(BrainMaskData)))) ./ std(ReHoBrain(find(BrainMaskData)))) .* (BrainMaskData~=0);
+        rest_WriteNiftiImage(Temp,Header,[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'zReHoMap_',AutoDataProcessParameter.SubjectID{i}]);
+        
+                              
+                              
+                              
         if AutoDataProcessParameter.CalReHo.smReHo == 1
             load([ProgramPath,filesep,'Jobmats',filesep,'Smooth.mat']);
-            FileList=[{[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'mReHoMap_',AutoDataProcessParameter.SubjectID{i},'.nii,1']}];
+            %FileList=[{[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'mReHoMap_',AutoDataProcessParameter.SubjectID{i},'.nii,1']}];
+            
+            FileList=[{[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'mReHoMap_',AutoDataProcessParameter.SubjectID{i},'.nii,1'];[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'zReHoMap_',AutoDataProcessParameter.SubjectID{i},'.nii,1']}];
+
+            
             jobs{1,1}.spatial{1,1}.smooth.data=[jobs{1,1}.spatial{1,1}.smooth.data;FileList];
             jobs{1,1}.spatial{1,1}.smooth.fwhm=AutoDataProcessParameter.Smooth.FWHM;
             if SPMversion==5
@@ -1093,6 +1105,13 @@ if (AutoDataProcessParameter.IsCalALFF==1)
         rest_DivideMeanWithinMask([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ALFF',filesep,'ALFFMap_',AutoDataProcessParameter.SubjectID{i}], ...
                                   [AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ALFF',filesep,'mALFFMap_',AutoDataProcessParameter.SubjectID{i}], ...
                                   AutoDataProcessParameter.CalALFF.AMaskFilename);
+                              
+        [ALFFBrain,Vox,Header] = rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ALFF',filesep,'ALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
+        BrainMaskData = rest_readfile(AutoDataProcessParameter.CalALFF.AMaskFilename);
+        Temp = ((ALFFBrain - mean(ALFFBrain(find(BrainMaskData)))) ./ std(ALFFBrain(find(BrainMaskData)))) .* (BrainMaskData~=0);
+        rest_WriteNiftiImage(Temp,Header,[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ALFF',filesep,'zALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
+                           
+                              
         if AutoDataProcessParameter.CalALFF.mALFF_1 == 1
             [Data Vox Head]=rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ALFF',filesep,'mALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
             Data=Data - 1;
@@ -1120,6 +1139,13 @@ if (AutoDataProcessParameter.IsCalfALFF==1)
         rest_DivideMeanWithinMask([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'fALFF',filesep,'fALFFMap_',AutoDataProcessParameter.SubjectID{i}], ...
                                   [AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'fALFF',filesep,'mfALFFMap_',AutoDataProcessParameter.SubjectID{i}], ...
                                   AutoDataProcessParameter.CalfALFF.AMaskFilename);
+                                                
+        [fALFFBrain,Vox,Header] = rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'fALFF',filesep,'fALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
+        BrainMaskData = rest_readfile(AutoDataProcessParameter.CalfALFF.AMaskFilename);
+        Temp = ((fALFFBrain - mean(fALFFBrain(find(BrainMaskData)))) ./ std(fALFFBrain(find(BrainMaskData)))) .* (BrainMaskData~=0);
+        rest_WriteNiftiImage(Temp,Header,[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'fALFF',filesep,'zfALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
+        
+                
         if AutoDataProcessParameter.CalfALFF.mfALFF_1 == 1
             [Data Vox Head]=rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'fALFF',filesep,'mfALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
             Data=Data - 1;
