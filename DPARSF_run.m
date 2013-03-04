@@ -114,6 +114,7 @@ function [Error]=DPARSF_run(AutoDataProcessParameter)
 % Modified by YAN Chao-Gan, 120101. Nomralize by DARTEL added.
 % Modified by YAN Chao-Gan, 120905. DPARSF V2.2 PRE.
 % Modified by YAN Chao-Gan, 121225. DPARSF V2.2.
+% Modified by YAN Chao-Gan, 130303. DPARSF basic edition will also output the results of ReHo/ALFF/fALFF after Z-standardization (subtract the whole brain mean and divide by the whole brain standard deviation).
 
 
 if ischar(AutoDataProcessParameter)  %If inputed a .mat file name. (Cfg inside)
@@ -1046,7 +1047,8 @@ if (AutoDataProcessParameter.IsCalReHo==1)
                                   AutoDataProcessParameter.CalReHo.AMaskFilename);
                               
         [ReHoBrain,Vox,Header] = rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'ReHoMap_',AutoDataProcessParameter.SubjectID{i}]);
-        BrainMaskData = rest_readfile(AutoDataProcessParameter.CalReHo.AMaskFilename);
+     
+        BrainMaskData=rest_loadmask(size(ReHoBrain,1), size(ReHoBrain,2), size(ReHoBrain,3), AutoDataProcessParameter.CalReHo.AMaskFilename); % YAN Chao-Gan, 130303
         Temp = ((ReHoBrain - mean(ReHoBrain(find(BrainMaskData)))) ./ std(ReHoBrain(find(BrainMaskData)))) .* (BrainMaskData~=0);
         rest_WriteNiftiImage(Temp,Header,[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ReHo',filesep,'zReHoMap_',AutoDataProcessParameter.SubjectID{i}]);
         
@@ -1107,7 +1109,8 @@ if (AutoDataProcessParameter.IsCalALFF==1)
                                   AutoDataProcessParameter.CalALFF.AMaskFilename);
                               
         [ALFFBrain,Vox,Header] = rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ALFF',filesep,'ALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
-        BrainMaskData = rest_readfile(AutoDataProcessParameter.CalALFF.AMaskFilename);
+    
+        BrainMaskData=rest_loadmask(size(ALFFBrain,1), size(ALFFBrain,2), size(ALFFBrain,3), AutoDataProcessParameter.CalALFF.AMaskFilename); % YAN Chao-Gan, 130303
         Temp = ((ALFFBrain - mean(ALFFBrain(find(BrainMaskData)))) ./ std(ALFFBrain(find(BrainMaskData)))) .* (BrainMaskData~=0);
         rest_WriteNiftiImage(Temp,Header,[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'ALFF',filesep,'zALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
                            
@@ -1141,7 +1144,8 @@ if (AutoDataProcessParameter.IsCalfALFF==1)
                                   AutoDataProcessParameter.CalfALFF.AMaskFilename);
                                                 
         [fALFFBrain,Vox,Header] = rest_readfile([AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'fALFF',filesep,'fALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
-        BrainMaskData = rest_readfile(AutoDataProcessParameter.CalfALFF.AMaskFilename);
+      
+        BrainMaskData=rest_loadmask(size(fALFFBrain,1), size(fALFFBrain,2), size(fALFFBrain,3), AutoDataProcessParameter.CalfALFF.AMaskFilename); % YAN Chao-Gan, 130303
         Temp = ((fALFFBrain - mean(fALFFBrain(find(BrainMaskData)))) ./ std(fALFFBrain(find(BrainMaskData)))) .* (BrainMaskData~=0);
         rest_WriteNiftiImage(Temp,Header,[AutoDataProcessParameter.DataProcessDir,filesep,'Results',filesep,'fALFF',filesep,'zfALFFMap_',AutoDataProcessParameter.SubjectID{i}]);
         

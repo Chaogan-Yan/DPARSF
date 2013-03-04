@@ -22,6 +22,7 @@ function [Error]=DPARSFA_run(AutoDataProcessParameter)
 % Modified by YAN Chao-Gan, 120101. DARTEL, multiplse sessions, reorient, .nii.gz files and so on added.
 % Modified by YAN Chao-Gan, 120905. DPARSF V2.2 PRE.
 % Modified by YAN Chao-Gan, 121225. DPARSF V2.2.
+% Modified by YAN Chao-Gan, 130303. DPARSF V2.2, minor revision.
 
 
 if ischar(AutoDataProcessParameter)  %If inputed a .mat file name. (Cfg inside)
@@ -1945,7 +1946,9 @@ if (AutoDataProcessParameter.IsNormalize>0) && strcmpi(AutoDataProcessParameter.
                 if AutoDataProcessParameter.TimePoints>0 && size(Nii.dat,4)~=AutoDataProcessParameter.TimePoints % Will not check if TimePoints set to 0. YAN Chao-Gan 120806.
                     Error=[Error;{['Error in Normalize, time point number doesn''t match: ',AutoDataProcessParameter.SubjectID{i}]}];
                 end
-                FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
+                FileList=[FileList;{[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]}];
+                %YAN Chao-Gan, 130301. Fixed a bug (leave session 1) in normalization in multiple sessions.  %FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
+
             end
         end
         
@@ -2152,7 +2155,10 @@ if (AutoDataProcessParameter.IsSmooth>=1) && strcmpi(AutoDataProcessParameter.Sm
                     if AutoDataProcessParameter.TimePoints>0 && size(Nii.dat,4)~=AutoDataProcessParameter.TimePoints % Will not check if TimePoints set to 0. YAN Chao-Gan 120806.
                         Error=[Error;{['Error in Smooth: ',AutoDataProcessParameter.SubjectID{i}]}];
                     end
-                    FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
+
+                    FileList=[FileList;{[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]}];
+                    %YAN Chao-Gan, 130301. Fixed a bug (leave session 1) in smooth in multiple sessions.  %FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
+                    
                 end
             end
 
@@ -2210,7 +2216,10 @@ if (AutoDataProcessParameter.IsSmooth>=1) && strcmpi(AutoDataProcessParameter.Sm
                     if AutoDataProcessParameter.TimePoints>0 && size(Nii.dat,4)~=AutoDataProcessParameter.TimePoints % Will not check if TimePoints set to 0. YAN Chao-Gan 120806.
                         Error=[Error;{['Error in Smooth: ',AutoDataProcessParameter.SubjectID{i}]}];
                     end
-                    FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName(1:end-1),filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
+                    
+                    FileList=[FileList;{[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]}];
+                    %YAN Chao-Gan, 130301. Fixed a bug (leave session 1) in smooth in multiple sessions.  %FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
+         
                 end
             end
 
@@ -3210,7 +3219,9 @@ if AutoDataProcessParameter.IsNormalizeToSymmetricGroupT1Mean==1
                 if AutoDataProcessParameter.TimePoints>0 && size(Nii.dat,4)~=AutoDataProcessParameter.TimePoints % Will not check if TimePoints set to 0. YAN Chao-Gan 120806.
                     Error=[Error;{['Error in Normalize, time point number doesn''t match: ',AutoDataProcessParameter.SubjectID{i}]}];
                 end
-                FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
+                
+                FileList=[FileList;{[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]}];
+                %YAN Chao-Gan, 130301. Fixed a bug (leave session 1) in multiple sessions.  %FileList={[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirImg(1).name]};
             end
         end
         

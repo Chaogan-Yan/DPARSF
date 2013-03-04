@@ -7,6 +7,9 @@ The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Or
 State Key Laboratory of Cognitive Neuroscience and Learning, Beijing Normal University, China, 100875
 ycg.yan@gmail.com
 
+New features of DPARSF_V2.2_130303:
+1. Advanced Edition: Fixed a bug in processing of multiple sessions - only process the last session in normalization and smooth.
+2. Basic Edition: Fixed a bug caused in the previous release (V2.2_130214) - cannot load the correct masks (Thanks for the report of YANG Tao).
 
 New features of DPARSF_V2.2_130214:
 1. This release fixed some minor bugs, will not affect any data analysis. The bugs appear in uncommon parameter settings and stop the processing in the worst cases.

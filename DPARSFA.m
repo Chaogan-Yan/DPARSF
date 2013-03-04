@@ -10,7 +10,7 @@ function varargout = DPARSFA(varargin)
 %	http://www.restfmri.net
 % $mail     =ycg.yan@gmail.com
 % $Version =2.2;
-% $Date =20130224;
+% $Date =20130303;
 %-----------------------------------------------------------
 % 	Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a> 
 %   Last Modified by YAN Chao-Gan, 110505. Fixed an error in the future MATLAB version in "[pathstr, name, ext, versn] = fileparts...".
@@ -37,7 +37,7 @@ end
 
 % --- Executes just before DPARSFA is made visible.
 function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
-    Release='V2.2_130224';
+    Release='V2.2_130303';
     handles.Release = Release; % Will be used in mat file version checking (e.g., in function SetLoadedData)
     
     if ispc

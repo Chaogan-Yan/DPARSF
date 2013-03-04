@@ -1,4 +1,4 @@
-function y_GroupAnalysis_Image(DependentVolume,Predictor,OutputName,MaskFile,Contrast,TF_Flag,Header)
+function [b_OLS_brain, t_OLS_brain, TF_ForContrast_brain, r_OLS_brain, Header] = y_GroupAnalysis_Image(DependentVolume,Predictor,OutputName,MaskFile,Contrast,TF_Flag,IsOutputResidual,Header)
 % function y_GroupAnalysis_Image(DependentDir,Predictor,OutputName,MaskFile)
 % Perform regression analysis 
 % Input:
@@ -8,10 +8,13 @@ function y_GroupAnalysis_Image(DependentVolume,Predictor,OutputName,MaskFile,Con
 %   MaskFile - the mask file.
 %   Contrast [optional] - Contrast for T-test for F-test. 1*ncolX matrix.
 %   TF_Flag [optional] - 'T' or 'F'. Specify if T-test or F-test need to be performed for the contrast
+%   IsOutputResidual - 1: output the 4D residuals. 
+%                    - 0: don't output the 4D residuals
 %   Header [optional] - If DependentVolume is given as a 4D Brain matrix, then Header should be designated.
 
 % Output:
 %   OutputName_b.nii, OutputName_T.nii     - beta and t value files results
+%   OutputName_Residual.nii (optional)     - Residual files
 %___________________________________________________________________________
 % Written by YAN Chao-Gan 120823.
 % The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962, USA
@@ -51,6 +54,10 @@ t_OLS_brain=zeros(nDim1,nDim2,nDim3,size(Predictor,2));
 
 TF_ForContrast_brain=zeros(nDim1,nDim2,nDim3);
 
+%YAN Chao-Gan, 130227
+if exist('IsOutputResidual','var') && (IsOutputResidual==1)
+    r_OLS_brain=zeros(nDim1,nDim2,nDim3,nDim4);
+end
 
 fprintf('\n\tRegression Calculating...\n');
 for i=1:nDim1
@@ -63,23 +70,26 @@ for i=1:nDim1
                 
                 
                 
-                if ~exist('Contrast','var')
+                if exist('Contrast','var') && ~isempty(Contrast)
                     
-                    [b,r,SSE,SSR,T] = y_regress_ss(DependentVariable,Predictor);
-                    
-                    b_OLS_brain(i,j,k,:)=b;
-                    t_OLS_brain(i,j,k,:)=T;
-                    
-                else
                     [b,r,SSE,SSR, T, TF_ForContrast] = y_regress_ss(DependentVariable,Predictor,Contrast,TF_Flag);
                     
                     b_OLS_brain(i,j,k,:)=b;
                     t_OLS_brain(i,j,k,:)=T;
                     TF_ForContrast_brain(i,j,k)=TF_ForContrast;
                     
+                else
+                    [b,r,SSE,SSR,T] = y_regress_ss(DependentVariable,Predictor);
+                    
+                    b_OLS_brain(i,j,k,:)=b;
+                    t_OLS_brain(i,j,k,:)=T;
+                    
                 end
                 
-           
+                %YAN Chao-Gan, 130227
+                if exist('IsOutputResidual','var') && (IsOutputResidual==1)
+                    r_OLS_brain(i,j,k,:)=r;
+                end
                 
             end
         end
@@ -88,6 +98,9 @@ end
 b_OLS_brain(isnan(b_OLS_brain))=0;
 t_OLS_brain(isnan(t_OLS_brain))=0;
 TF_ForContrast_brain(isnan(TF_ForContrast_brain))=0;
+
+Header.pinfo = [1;0;0];
+Header.dt    =[16,0];
 
 DOF = nDim4 - size(Predictor,2);
 HeaderTWithDOF=Header;
@@ -101,7 +114,7 @@ for ii=1:size(b_OLS_brain,4)
 end
 
 
-if exist('Contrast','var')
+if ~exist('Contrast','var') && ~isempty(Contrast)
 
     Df_Group = length(find(Contrast));
     Df_E = nDim4 - size(Predictor,2);
@@ -110,6 +123,11 @@ if exist('Contrast','var')
     
     rest_WriteNiftiImage(TF_ForContrast_brain,HeaderTWithDOF,[OutputName,'_',TF_Flag,'_ForContrast','.nii']);
   
+end
+
+%YAN Chao-Gan, 130227
+if exist('IsOutputResidual','var') && (IsOutputResidual==1)
+    y_Write4DNIfTI(r_OLS_brain,Header,[OutputName,'_Residual','.nii']);
 end
 
 
