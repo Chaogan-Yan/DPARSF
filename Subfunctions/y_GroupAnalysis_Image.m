@@ -114,7 +114,7 @@ for ii=1:size(b_OLS_brain,4)
 end
 
 
-if ~exist('Contrast','var') && ~isempty(Contrast)
+if exist('Contrast','var') && ~isempty(Contrast)
 
     Df_Group = length(find(Contrast));
     Df_E = nDim4 - size(Predictor,2);

@@ -263,7 +263,11 @@ if (AutoDataProcessParameter.IsNeedConvertFunDCM2IMG==1)
             InputFilename=[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},'FunRaw',filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirDCM(StartIndex).name];
 
             %YAN Chao-Gan 120817.
-            y_Call_dcm2nii(InputFilename, OutputDir, 'DefaultINI');
+            if ispc
+                y_Call_dcm2nii(InputFilename, OutputDir, ['-b ',ProgramPath,filesep,'dcm2nii',filesep,'dcm2nii_3DImg.ini']);  %YAN Chao-Gan 130607 Changed from: y_Call_dcm2nii(InputFilename, OutputDir, 'DefaultINI');
+            else
+                y_Call_dcm2nii(InputFilename, OutputDir, ['-b ',ProgramPath,filesep,'dcm2nii',filesep,'dcm2nii_linux_3DImg.ini']);  %YAN Chao-Gan 130607 Changed from: y_Call_dcm2nii(InputFilename, OutputDir, 'DefaultINI');
+            end
 
             fprintf(['Converting Functional Images:',AutoDataProcessParameter.SubjectID{i},' OK']);
         end
@@ -288,7 +292,11 @@ if (AutoDataProcessParameter.IsNeedConvertT1DCM2IMG==1)
         InputFilename=[AutoDataProcessParameter.DataProcessDir,filesep,'T1Raw',filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirDCM(StartIndex).name];
         
         %YAN Chao-Gan 120817.
-        y_Call_dcm2nii(InputFilename, OutputDir, 'DefaultINI');
+        if ispc
+            y_Call_dcm2nii(InputFilename, OutputDir, ['-b ',ProgramPath,filesep,'dcm2nii',filesep,'dcm2nii_3DImg.ini']);  %YAN Chao-Gan 130607 Changed from: y_Call_dcm2nii(InputFilename, OutputDir, 'DefaultINI');
+        else
+            y_Call_dcm2nii(InputFilename, OutputDir, ['-b ',ProgramPath,filesep,'dcm2nii',filesep,'dcm2nii_linux_3DImg.ini']);  %YAN Chao-Gan 130607 Changed from: y_Call_dcm2nii(InputFilename, OutputDir, 'DefaultINI');
+        end
         
         fprintf(['Converting T1 Images:',AutoDataProcessParameter.SubjectID{i},' OK']);
     end

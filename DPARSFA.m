@@ -1,7 +1,7 @@
 function varargout = DPARSFA(varargin)
 %Data Processing Assistant for Resting-State fMRI (DPARSF) Advanced Edition (alias: DPARSFA) GUI by YAN Chao-Gan
 %-----------------------------------------------------------
-%	Copyright(c) 2009~2013
+%	Copyright(c) 2009; GNU GENERAL PUBLIC LICENSE
 %   The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962; 
 %   Child Mind Institute, 445 Park Avenue, New York, NY 10022; 
 %   The Phyllis Green and Randolph Cowen Institute for Pediatric Neuroscience, New York University Child Study Center, New York, NY 10016
@@ -9,8 +9,8 @@ function varargout = DPARSFA(varargin)
 %	Written by YAN Chao-Gan
 %	http://www.restfmri.net
 % $mail     =ycg.yan@gmail.com
-% $Version =2.2;
-% $Date =20130303;
+% $Version =2.3;
+% $Date =20130615;
 %-----------------------------------------------------------
 % 	Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a> 
 %   Last Modified by YAN Chao-Gan, 110505. Fixed an error in the future MATLAB version in "[pathstr, name, ext, versn] = fileparts...".
@@ -37,7 +37,7 @@ end
 
 % --- Executes just before DPARSFA is made visible.
 function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
-    Release='V2.2_130303';
+    Release='V2.3_130615';
     handles.Release = Release; % Will be used in mat file version checking (e.g., in function SetLoadedData)
     
     if ispc
@@ -48,7 +48,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     Datetime=fix(clock);
     fprintf('Welcome: %s, %.4d-%.2d-%.2d %.2d:%.2d \n', UserName,Datetime(1),Datetime(2),Datetime(3),Datetime(4),Datetime(5));
     fprintf('Data Processing Assistant for Resting-State fMRI (DPARSF) Advanced Edition (alias: DPARSFA). \nRelease=%s\n',Release);
-    fprintf('Copyright(c) 2009~2013\n');
+    fprintf('Copyright(c) 2009; GNU GENERAL PUBLIC LICENSE\n');
     fprintf('The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962; Child Mind Institute, 445 Park Avenue, New York, NY 10022; The Phyllis Green and Randolph Cowen Institute for Pediatric Neuroscience, New York University Child Study Center, New York, NY 10016\n');
     fprintf('State Key Laboratory of Cognitive Neuroscience and Learning, Beijing Normal University, China\n');
     fprintf('Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a>\nhttp://www.restfmri.net\n');
@@ -98,6 +98,7 @@ function DPARSFA_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.Cfg.TimePoints=0;
     handles.Cfg.TR=0;
     handles.Cfg.IsNeedConvertFunDCM2IMG=1;
+    handles.Cfg.IsApplyDownloadedReorientMats=0; %YAN Chao-Gan, 130612.
     %handles.Cfg.IsNeedConvert4DFunInto3DImg=0;
     handles.Cfg.IsRemoveFirstTimePoints=1;
     handles.Cfg.RemoveFirstTimePoints=10;
@@ -467,6 +468,21 @@ function ckboxEPIDICOM2NIFTI_Callback(hObject, eventdata, handles)
 	guidata(hObject, handles);
 	UpdateDisplay(handles);    
 
+function checkboxApplyDownloadedReorientMats_Callback(hObject, eventdata, handles)
+    if get(hObject,'Value')
+        handles.Cfg.IsApplyDownloadedReorientMats = 1;
+        if ~(7==exist([handles.Cfg.DataProcessDir,filesep,'DownloadedReorientMats'],'dir'))
+            uiwait(msgbox({'No DownloadedReorientMats detected! The downloaded reorient mats (*_ReorientFunImgMat.mat and *_ReorientT1ImgMat.mat) should be put in DownloadedReorientMats folder under the working directory!';...
+                },'Apply Downloaded Reorient Mats'));
+        end
+    else
+        handles.Cfg.IsApplyDownloadedReorientMats = 0;
+    end
+    handles=CheckCfgParameters(handles);
+    guidata(hObject, handles);
+    UpdateDisplay(handles);
+    
+    
 % function checkboxConvert4DFunInto3DImg_Callback(hObject, eventdata, handles)
 % 	if get(hObject,'Value')
 % 		handles.Cfg.IsNeedConvert4DFunInto3DImg = 1;
@@ -510,8 +526,11 @@ function editSliceNumber_Callback(hObject, eventdata, handles)
 	handles.Cfg.SliceTiming.SliceNumber =str2double(get(hObject,'String'));
     
     if handles.Cfg.SliceTiming.SliceNumber==0
-        uiwait(msgbox({'If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., SliceOrder(ceil(SliceNumber/2)). SHOULD BE EXTREMELY CAUTIOUS!!!';...
-            },'Set Number of Slices'));
+        if exist([handles.Cfg.DataProcessDir,filesep,'SliceOrderInfo.tsv'])==2 % YAN Chao-Gan, 130524. Read the slice timing information from a tsv file (Tab-separated values)
+        else
+            uiwait(msgbox({'SliceOrderInfo.tsv (under working directory) is not detected. Please go {DPARSF}/Docs/SliceOrderInfo.tsv_Instruction.txt for instructions to allow different slice timing correction for different participants. If SliceNumber is set to 0 while SliceOrderInfo.tsv is not set, the slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., SliceOrder(ceil(SliceNumber/2)). SHOULD BE EXTREMELY CAUTIOUS!!!';...
+                },'Set Number of Slices'));
+        end
     end
     
     %handles.Cfg.SliceTiming.TR = handles.Cfg.TR;
@@ -1546,7 +1565,10 @@ function SetLoadedData(hObject,handles, Cfg);
     if ~isfield(handles.Cfg,'IsNormalizeToSymmetricGroupT1Mean')
         handles.Cfg.IsNormalizeToSymmetricGroupT1Mean=0;
     end
-
+    
+    if ~isfield(handles.Cfg,'IsApplyDownloadedReorientMats')
+        handles.Cfg.IsApplyDownloadedReorientMats=0;
+    end
 
     guidata(hObject, handles);
     UpdateDisplay(handles);
@@ -1684,9 +1706,11 @@ function [handles, CheckingPass]=CheckCfgParametersBeforeRun(handles)
     end
     
     if (handles.Cfg.IsSliceTiming==1) && (handles.Cfg.SliceTiming.SliceNumber==0)
-        Answer=questdlg('If SliceNumber is set to 0, then retrieve the slice number from the NIfTI images. The slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., SliceOrder(ceil(SliceNumber/2)). SHOULD BE EXTREMELY CAUTIOUS! Are you sure want to continue?','Configuration parameters checking','Yes','No','No');
-        if ~strcmpi(Answer,'Yes')
-            return
+        if ~exist([handles.Cfg.DataProcessDir,filesep,'SliceOrderInfo.tsv'])==2 % YAN Chao-Gan, 130524. Read the slice timing information from a tsv file (Tab-separated values)
+            Answer=questdlg('SliceOrderInfo.tsv (under working directory) is not detected. Please go {DPARSF}/Docs/SliceOrderInfo.tsv_Instruction.txt for instructions to allow different slice timing correction for different participants. If SliceNumber is set to 0 while SliceOrderInfo.tsv is not set, the slice order is then assumed as interleaved scanning: [1:2:SliceNumber,2:2:SliceNumber]. The reference slice is set to the slice acquired at the middle time point, i.e., SliceOrder(ceil(SliceNumber/2)). SHOULD BE EXTREMELY CAUTIOUS!!! Are you sure want to continue?','Configuration parameters checking','Yes','No','No');
+            if ~strcmpi(Answer,'Yes')
+                return
+            end
         end
     end
     
@@ -1713,6 +1737,8 @@ function UpdateDisplay(handles)
     set(handles.editTimePoints ,'String', num2str(handles.Cfg.TimePoints));	
     set(handles.editTR ,'String', num2str(handles.Cfg.TR));	
     set(handles.ckboxEPIDICOM2NIFTI, 'Value', handles.Cfg.IsNeedConvertFunDCM2IMG);
+    set(handles.checkboxApplyDownloadedReorientMats, 'Value', handles.Cfg.IsApplyDownloadedReorientMats);
+
     %set(handles.checkboxConvert4DFunInto3DImg, 'Value', handles.Cfg.IsNeedConvert4DFunInto3DImg);
     % set(handles.editRemoveFirstTimePoints ,'String', num2str(handles.Cfg.RemoveFirstTimePoints));
     % Revised by YAN Chao-Gan 091110. Add a checkbox to avoid forgeting to check this parameter.

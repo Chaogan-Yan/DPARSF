@@ -158,6 +158,8 @@ VMHCBrain=zeros(size(MaskDataOneDim));
 VMHCBrain(1,find(MaskDataOneDim))=VMHC;
 VMHCBrain=reshape(VMHCBrain,nDim1, nDim2, nDim3);
 
+VMHCBrain(fix(nDim1/2) + 1,:,:) = 0; %Added by YAN Chao-Gan, 130611. Put the midline voxels to zero.
+
 Header.pinfo = [1;0;0];
 Header.dt    =[16,0];
 

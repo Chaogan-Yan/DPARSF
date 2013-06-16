@@ -231,8 +231,8 @@ save([fullfile(pathstr,['ROICorrelation_FisherZ_', name]), '.mat'], 'ROICorrelat
 save([fullfile(pathstr,['ROICorrelation_FisherZ_', name]), '.txt'], 'ROICorrelation_FisherZ', '-ASCII', '-DOUBLE','-TABS')
 
 
-%Write the order key file as .csv
-fid = fopen([fullfile(pathstr,['ROI_OrderKey_', name]), '.csv'],'w');
+%Write the order key file as .tsv
+fid = fopen([fullfile(pathstr,['ROI_OrderKey_', name]), '.tsv'],'w');
 if IsMultipleLabel == 1
     MaskROILabel{1,length(ROIDef)} = []; % Force the undefined cells to empty
     fprintf(fid,'Order\tLabel in Mask\tROI Definition\n');

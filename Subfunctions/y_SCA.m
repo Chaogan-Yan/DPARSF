@@ -221,8 +221,8 @@ SeedSeries = double(cell2mat(SeedSeries)); %Suggested by H. Baetschmann.  % Seed
 save([fullfile(pathstr,['ROI_', name]), '.mat'], 'SeedSeries')
 save([fullfile(pathstr,['ROI_', name]), '.txt'], 'SeedSeries', '-ASCII', '-DOUBLE','-TABS')
 
-%Write the order key file as .csv
-fid = fopen([fullfile(pathstr,['ROI_OrderKey_', name]), '.csv'],'w');
+%Write the order key file as .tsv
+fid = fopen([fullfile(pathstr,['ROI_OrderKey_', name]), '.tsv'],'w');
 if IsMultipleLabel == 1
     MaskROILabel{1,length(ROIDef)} = []; % Force the undefined cells to empty
     fprintf(fid,'Order\tLabel in Mask\tROI Definition\n');

@@ -1,14 +1,14 @@
 function varargout = DPARSF(varargin)
 %Data Processing Assistant for Resting-State fMRI (DPARSF) Basic Edition GUI by YAN Chao-Gan
 %-----------------------------------------------------------
-%	Copyright(c) 2009~2013
+%	Copyright(c) 2009; GNU GENERAL PUBLIC LICENSE
 %	State Key Laboratory of Cognitive Neuroscience and Learning, Beijing Normal University
 %   The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962; Child Mind Institute, 445 Park Avenue, New York, NY 10022; The Phyllis Green and Randolph Cowen Institute for Pediatric Neuroscience, New York University Child Study Center, New York, NY 10016
 %	Written by YAN Chao-Gan
 %	http://www.restfmri.net
 % $mail     =ycg.yan@gmail.com
-% $Version =2.2;
-% $Date =20130303;
+% $Version =2.3;
+% $Date =20130615;
 %-----------------------------------------------------------
 % 	Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a> 
 
@@ -27,6 +27,7 @@ function varargout = DPARSF(varargin)
 % Modified by YAN Chao-Gan, 121225. DPARSF V2.2.
 % Modified by YAN Chao-Gan, 130224. DPARSF V2.2, minor revision.
 % Modified by YAN Chao-Gan, 130303. DPARSF V2.2, minor revision.
+% Modified by YAN Chao-Gan, 130615. DPARSF V2.3.
 
 
 % Begin initialization code - DO NOT EDIT
@@ -51,7 +52,7 @@ end
 
 % --- Executes just before DPARSF is made visible.
 function DPARSF_OpeningFcn(hObject, eventdata, handles, varargin)
-    Release='V2.2_130303';
+    Release='V2.3_130615';
     
     [ProgramPath, fileN, extn] = fileparts(which('DPARSFA.m'));
     addpath([ProgramPath,filesep,'SubGUIs']);
@@ -71,8 +72,9 @@ function DPARSF_OpeningFcn(hObject, eventdata, handles, varargin)
     Datetime=fix(clock);
     fprintf('Welcome: %s, %.4d-%.2d-%.2d %.2d:%.2d \n', UserName,Datetime(1),Datetime(2),Datetime(3),Datetime(4),Datetime(5));
     fprintf('Data Processing Assistant for Resting-State fMRI (DPARSF) Basic Edition. \nRelease=%s\n',Release);
-    fprintf('Copyright(c) 2009~2013\nState Key Laboratory of Cognitive Neuroscience and Learning, Beijing Normal University, China\n');
+    fprintf('Copyright(c) 2009; GNU GENERAL PUBLIC LICENSE\n');
     fprintf('The Nathan Kline Institute for Psychiatric Research, 140 Old Orangeburg Road, Orangeburg, NY 10962; Child Mind Institute, 445 Park Avenue, New York, NY 10022; The Phyllis Green and Randolph Cowen Institute for Pediatric Neuroscience, New York University Child Study Center, New York, NY 10016\n');
+    fprintf('State Key Laboratory of Cognitive Neuroscience and Learning, Beijing Normal University, China\n');
     fprintf('Mail to Author:  <a href="ycg.yan@gmail.com">YAN Chao-Gan</a>\nhttp://www.restfmri.net\n');
     fprintf('-----------------------------------------------------------\n');
     fprintf('Citing Information:\nIf you think DPARSF is useful for your work, citing it in your paper would be greatly appreciated.\nSomething like "... The preprocessing was carried out by using Data Processing Assistant for Resting-State fMRI (DPARSF) (Yan & Zang, 2010, http://www.restfmri.net) which is based on Statistical Parametric Mapping (SPM8) (http://www.fil.ion.ucl.ac.uk/spm) and Resting-State fMRI Data Analysis Toolkit (REST, Song et al., 2011. http://www.restfmri.net)..."\nReference: Yan C and Zang Y (2010) DPARSF: a MATLAB toolbox for "pipeline" data analysis of resting-state fMRI. Front. Syst. Neurosci. 4:13. doi:10.3389/fnsys.2010.00013;     Song, X.W., Dong, Z.Y., Long, X.Y., Li, S.F., Zuo, X.N., Zhu, C.Z., He, Y., Yan, C.G., Zang, Y.F., 2011. REST: A Toolkit for Resting-State Functional Magnetic Resonance Imaging Data Processing. PLoS ONE 6, e25031.\n');
